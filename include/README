@@ -1,0 +1,2 @@
+The exported header files here.
+This folder contains the header files external to user applications. It shall not contain any files internal for the framework implementation.
