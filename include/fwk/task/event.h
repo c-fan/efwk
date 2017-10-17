@@ -27,36 +27,27 @@
 #ifndef FWK_TASK_EVENT_H_
 #define FWK_TASK_EVENT_H_
 
-#include <fwk/basic/types.h>
+#include <fwk/task/task.h>
 
 typedef uint8_t fwk_eventType_t;
+
 typedef struct
 {
-	fwk_eventType_t eventType; /* event type */
 	uint16_t datalen; /* size of the data field only, not including other source, eventType & other fields*/
+	fwk_eventType_t eventType; /* event type */
 	fwk_sysID_t sourceSys; /* source system ID */
 	fwk_taskID_t sourceTask; /* source task ID */
 	/* data sent by copy, i.e. data are encapsulated instead of just pass the pointer.
 	 * obviously, event by copy can also be used to implement data by reference, but that's specific task design choice (not recommended)
 	 */
-	void * data; /* data attached to the event */
+	uint8_t data[0]; /* data attached to the event */
 } fwk_event_t;
-
-/*
- * error code for event queue
- */
-typedef enum
-{
-	FWK_TASK_EVENT_E_PARAM = -1, /* invalid parameter */
-	FWK_TASK_EVENT_E_INTERNAL = -2, /* internal error */
-	FWK_TASK_EVENT_E_FULL = -3, /* event queue full */
-	FWK_TASK_EVENT_E_NODATA = -4, /* no event in the queue */
-} fwk_taskEventErrorCode_t;
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
+
 /*
  * Send an event to queue.
  * Input:
@@ -70,7 +61,7 @@ extern "C"
  * 	error code defined in fwk_taskEventErrorCode_t if failed
  */
 extern int fwk_task_sendEvent(fwk_taskID_t dest, fwk_eventType_t eventType,
-		void * data, int datalen, uint32_t timeout);
+		void * data, int datalen, int timeout);
 
 /*
  * Send an urgent event, this event will be on top of all other events not yet handled by the destine task.
@@ -86,7 +77,7 @@ extern int fwk_task_sendEvent(fwk_taskID_t dest, fwk_eventType_t eventType,
  * 	error code defined in fwk_taskEventErrorCode_t if failed
  */
 extern int fwk_task_sendOverullingEvent(fwk_taskID_t dest,
-		fwk_eventType_t eventType, void * data, int datalen, uint32_t timeout);
+		fwk_eventType_t eventType, void * data, int datalen, int timeout);
 
 /*
  * Receive data from a queue.
@@ -98,12 +89,12 @@ extern int fwk_task_sendOverullingEvent(fwk_taskID_t dest,
  * 	0 if succeed
  * 	error code defined in fwk_taskEventErrorCode_t if failed
  */
-extern int fwk_task_receiveEvent(fwk_event_t * event, uint32_t timeout);
+extern int fwk_task_receiveEvent(fwk_event_t * event, int timeout);
 
 /*
  * Clear not yet received events in the queue
  */
-extern int fwk_task_clearEventQueue();
+extern int fwk_task_clearEventQueue(fwk_taskID_t tid);
 
 #ifdef __cplusplus
 } /* extern C */

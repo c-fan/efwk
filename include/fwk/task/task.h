@@ -27,7 +27,9 @@
 #ifndef FWK_TASK_TASK_H_
 #define FWK_TASK_TASK_H_
 
-#include <fwk/basic/types.h>
+#include <pthread.h>
+#include <fwk/task/mutex.h>
+//#include <fwk/task/event.h>
 
 #ifdef __cplusplus
 extern "C"
@@ -37,20 +39,11 @@ extern "C"
 /* system ID */
 typedef uint8_t fwk_sysID_t;
 /* task ID */
-typedef ubase_t fwk_taskID_t;
+typedef void* fwk_taskID_t;
 /* task handler function prototype */
 typedef void *(*fwk_taskFunc_proto_t)(void *);
 /* task name maximum size */
 #define FWK_TASK_NAME_MAX_LEN 8
-/*
- * Error code
- */
-typedef enum
-{
-	FWK_TASK_E_INTERNAL = 1, /* internal error */
-	FWK_TASK_E_PARAM = 2, /* invalid parameter */
-	FWK_TASK_E_RESOURCE = 3, /* lack resource */
-} fwk_taskErrCode_t;
 
 /*
  * Task resource reservation
@@ -65,6 +58,36 @@ typedef struct
 	uint8_t queueSize; /* max size for each event in the queue */
 	uint8_t queueDepth; /* max number of events */
 } fwk_taskRes_t;
+
+typedef struct {
+	char name[FWK_TASK_NAME_MAX_LEN];
+	fwk_taskFunc_proto_t initFunc;
+	fwk_taskFunc_proto_t func;
+	void * args;
+	uint8_t policy;
+	uint8_t priority;
+	fwk_taskRes_t resource;
+	bool_t independent; //detach or fork
+	int taskType; //0-Preemptive, 1-Normal
+	int loopTimes;
+}fwk_taskAttr_t;
+
+typedef struct {
+	fwk_taskAttr_t attr;
+	pthread_t tid; //os thread id
+	void* mid; //mutex id
+	void* cid; // condition id
+	void* qid; //queue id
+	void* pid; //mem pool id
+	int taskPause;
+	int used;
+}fwk_taskList_t;
+#define FWK_TASK_MAX_LIMIT 100
+
+extern void fwk_showTask(fwk_taskID_t tid);
+extern int fwk_createTask(fwk_taskAttr_t* pAttr, fwk_taskID_t* pTid);
+extern void* fwk_taskMemPool(fwk_taskID_t tid);
+
 /*
  * Create preemptive task
  * These tasks that can preempt according to priority.

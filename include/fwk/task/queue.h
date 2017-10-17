@@ -27,26 +27,31 @@
 #ifndef FWK_TASK_QUEUE_H_
 #define FWK_TASK_QUEUE_H_
 
-#include <fwk/basic/types.h>
+#include <fwk/task/mutex.h>
 
 #ifdef __cplusplus
 extern "C"
 {
 #endif
 
+#define FWK_QUEUE_RESERVED_NODES 1
+#define FWK_QUEUE_MSG_DEF_NUM 8
+#define FWK_QUEUE_MSG_DEF_LEN 128
+
 /* queue name maximum size */
 #define FWK_QUEUE_NAME_MAX_LEN 12
 
-typedef uint16_t fwk_queueID_t;
+typedef void* fwk_queueID_t;
 
-typedef enum
-{
-	FWK_TASK_QUEUE_E_PARAM = -1, /* invalid parameter */
-	FWK_TASK_QUEUE_E_INTERNAL = -2, /* internal error */
-	FWK_TASK_QUEUE_E_FULL = -3, /* queue is full */
-	FWK_TASK_QUEUE_E_NODATA = -4, /* no data in the queue */
-	FWK_TASK_QUEUE_E_BUFOVERFLOW = -5, /* buffer size too small */
-} fwk_taskQueueErrorCode_t;
+typedef struct {
+	char name[FWK_QUEUE_NAME_MAX_LEN];
+	uint8_t depth; /* max message number */
+	uint16_t size; /* each message length */
+	uint16_t maxBufSize; /* total messasge buffer size */
+}fwk_queueAttr_t;
+int fwk_createQueue(fwk_queueAttr_t* pQAttr, void* mid, fwk_queueID_t* qid);
+int fwk_msgQSend(fwk_queueID_t qID, void* data, uint16_t size, void* head, uint16_t headLen, int priority);
+int fwk_msgQRecv(fwk_queueID_t qID, void * buffer, uint16_t bufsize, int timeout, void* head, uint16_t headLen, void* cid, void* mid);
 
 /*
  * Create queue with fixed size.
@@ -98,7 +103,7 @@ extern int fwk_createVarSizeQueue(fwk_queueID_t * qID, char * name,
  * 		FWK_TASK_QUEUE_E_FULL
  */
 extern int fwk_sendToQueue(fwk_queueID_t qID, void * data, uint16_t size,
-		uint32_t timeout);
+		int timeout);
 
 /*
  * Receive data from a queue.
@@ -111,12 +116,14 @@ extern int fwk_sendToQueue(fwk_queueID_t qID, void * data, uint16_t size,
  * 		FWK_TASK_QUEUE_E_BUFOVERFLOW
  */
 extern int fwk_receiveFromQueue(fwk_queueID_t qID, void * buffer,
-		uint16_t bufsize, uint32_t timeout);
+		uint16_t bufsize, int timeout);
 
 /*
  * Clear data in the queue
  */
 extern int fwk_clearQueue(fwk_queueID_t qID);
+extern void fwk_showQueue(fwk_queueID_t qID);
+extern uint16_t fwk_getMsgSize(fwk_queueID_t qID);
 
 #ifdef __cplusplus
 } /* extern C */
