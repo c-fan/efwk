@@ -36,7 +36,7 @@ typedef int (*fwk_taskDelete_proto_t)(void * nativeTaskInfo);
 typedef int (*fwk_taskSuspend_proto_t)(void * nativeTaskInfo);
 typedef int (*fwk_taskResume_proto_t)(void * nativeTaskInfo);
 typedef int (*fwk_taskSendEvent_proto_t)(void * nativeTaskInfo,
-		fwk_eventType_t eventType, void * data, int datalen, uint32_t timeout);
+		fwk_eventType_t eventType, void * data, int datalen, int timeout);
 
 typedef struct
 {

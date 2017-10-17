@@ -37,10 +37,10 @@ extern "C"
  * as developers shall be aware that it's more costing.
  */
 int fwk_task_sendRemoteEvent(fwk_sysID_t sid, fwk_taskID_t dest,
-		fwk_eventType_t eventType, void * data, int datalen, uint32_t timeout);
+		fwk_eventType_t eventType, void * data, int datalen, int timeout);
 
 int fwk_task_sendRemoteOverullingEvent(fwk_sysID_t sid, fwk_taskID_t dest,
-		fwk_eventType_t eventType, void * data, int datalen, uint32_t timeout);
+		fwk_eventType_t eventType, void * data, int datalen, int timeout);
 
 #ifdef __cplusplus
 } /* extern C */
