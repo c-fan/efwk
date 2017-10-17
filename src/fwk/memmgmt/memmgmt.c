@@ -32,6 +32,7 @@
 #include <stdarg.h>
 #include <pthread.h>
 #include <semaphore.h>
+#include <fwk/basic/types.h>
 #include <fwk/basic/basictrace.h>
 #include <fwk/memmgmt/memmgmt.h>
 #include "memmgmt.h"
@@ -117,7 +118,7 @@ static void fwk_memmgmt_insert( fwk_memmgmtLink_t *pMemToInsert )
 static void fwk_memmgmt_init( void )
 {
 	int32_t i4res;
-	uint32_t ui4Address;
+	fwk_addr_t ui4Address;
 	char *pi1AlignedMem;
 	uint32_t ui4MemTotalSize = FWK_MEMMGMT_TOTAL_MEM_SIZE;
 	fwk_memmgmtLink_t *pFirstFreeMem;
@@ -131,12 +132,12 @@ static void fwk_memmgmt_init( void )
 		return;
 	}
 
-	ui4Address = ( uint32_t ) gau1fwkmemmgmtPool;
+	ui4Address = (fwk_addr_t) gau1fwkmemmgmtPool;
 	if( ( ui4Address & FWK_MEMMGMT_BYTE_ALIGNMENT_MASK ) != 0 )
 	{
 		ui4Address += ( FWK_MEMMGMT_BYTE_ALIGNMENT - 1 );
-		ui4Address &= ~( ( uint32_t ) FWK_MEMMGMT_BYTE_ALIGNMENT_MASK );
-		ui4MemTotalSize -= ui4Address - ( uint32_t ) gau1fwkmemmgmtPool;
+		ui4Address &= ~( (fwk_addr_t) FWK_MEMMGMT_BYTE_ALIGNMENT_MASK );
+		ui4MemTotalSize -= ui4Address - (fwk_addr_t) gau1fwkmemmgmtPool;
 	}
 	pi1AlignedMem = ( char * ) ui4Address;
 	
@@ -145,9 +146,9 @@ static void fwk_memmgmt_init( void )
 	gfwkmemmgmtStart.pNextFreeMem = ( void * ) pi1AlignedMem;
 	gfwkmemmgmtStart.ui4MemSize = ( uint32_t ) 0;
 
-	ui4Address = ( ( uint32_t ) pi1AlignedMem ) + ui4MemTotalSize;
+	ui4Address = ( (fwk_addr_t) pi1AlignedMem ) + ui4MemTotalSize;
 	ui4Address -= gu4fwkmemmgmtStructSize;
-	ui4Address &= ~( ( uint32_t ) FWK_MEMMGMT_BYTE_ALIGNMENT_MASK );
+	ui4Address &= ~( (fwk_addr_t) FWK_MEMMGMT_BYTE_ALIGNMENT_MASK );
 	gpfwkmemmgmtEnd = ( void * ) ui4Address;
 	gpfwkmemmgmtEnd->ui4MemSize = 0;
 	gpfwkmemmgmtEnd->pNextFreeMem = NULL;
@@ -155,7 +156,7 @@ static void fwk_memmgmt_init( void )
 	fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK,FWK_BASICTRACE_LEVEL_INF,"gfwkmemmgmtStart pNextFreeMem:0x%x,gpfwkmemmgmtEnd:0x%x.\n",gfwkmemmgmtStart.pNextFreeMem,gpfwkmemmgmtEnd);
 
 	pFirstFreeMem = ( void * ) pi1AlignedMem;
-	pFirstFreeMem->ui4MemSize = ui4Address - ( uint32_t ) pFirstFreeMem;
+	pFirstFreeMem->ui4MemSize = ui4Address - (fwk_addr_t) pFirstFreeMem;
 	pFirstFreeMem->pNextFreeMem = gpfwkmemmgmtEnd;
 
 	gu4fwkmemmgmtMinFreeBytesRemaining = pFirstFreeMem->ui4MemSize;

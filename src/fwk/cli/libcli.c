@@ -3,7 +3,6 @@
 #include <windows.h>
 #endif
 
-#define _GNU_SOURCE
 #include <stdio.h>
 #include <errno.h>
 #include <stdarg.h>
@@ -19,7 +18,7 @@
 #ifndef WIN32
 #include <regex.h>
 #endif
-#include "../../../include/fwk/cli/libcli.h"
+#include "fwk/cli/libcli.h"
 
 // vim:sw=4 tw=120 et
 

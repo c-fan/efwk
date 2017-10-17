@@ -28,6 +28,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdarg.h>
+#include <fwk/basic/types.h>
 #include <fwk/basic/basictrace.h>
 #include "basictrace.h"
 
@@ -37,8 +38,8 @@ void fwk_basictrace_getLength (const char *pi1Fmt, va_list VarArgList, uint32_t 
     const char		*pi1TmpFmtString;
     const char		*pi1TmpArgString;
     const uint32_t		u4MaxIntLength = 19;
-    uint32_t	u4ArgCount;
-    uint32_t	u4val;
+    uint32_t	u4ArgCount = 0;
+    char*	pAddr;
     uint32_t	u4VarArgLength 	= 0;
 
     pi1FmtString = pi1Fmt;
@@ -49,7 +50,7 @@ void fwk_basictrace_getLength (const char *pi1Fmt, va_list VarArgList, uint32_t 
             pi1FmtString++;
             if (*pi1FmtString != '%')
             {
-                u4val = va_arg (VarArgList, int);
+                pAddr = (char*)va_arg (VarArgList, fwk_addr_t);
                 u4ArgCount++;
                 pi1TmpFmtString = pi1FmtString;
                 if(*pi1TmpFmtString == '-')
@@ -70,9 +71,9 @@ void fwk_basictrace_getLength (const char *pi1Fmt, va_list VarArgList, uint32_t 
                 }
                 else if(*pi1TmpFmtString == 's')
                 {
-                    if(u4val != 0)
+                    if(pAddr != 0)
                     {
-                        pi1TmpArgString = (char *)u4val;
+                        pi1TmpArgString = pAddr;
                         while(*pi1TmpArgString != '\0')
                         {
                             ++u4VarArgLength;
