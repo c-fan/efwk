@@ -25,26 +25,29 @@
  *---------------------------------------------------------------------------
  */
 
-#ifndef FWK_BASIC_TYPES_H
-#define FWK_BASIC_TYPES_H
+#ifndef FWK_ERROR_CODE_H
+#define FWK_ERROR_CODE_H
 
-#include <inttypes.h>
+/*
+ * Error code
+ */
+typedef enum
+{
+	FWK_E_PARAM = -1, /* invalid parameter */
+	FWK_E_INTERNAL = -2, /* internal error */
 
-typedef int bool_t;
-#define TRUE ((bool_t) 1)
-#define FALSE ((bool_t) 0) 
+	FWK_E_QUEUE_FULL = -3, /* queue is full */
+	FWK_E_QUEUE_NODATA = -4, /* no data in the queue */
+	FWK_E_QUEUE_BUFOVERFLOW = -5, /* buffer size too small */
 
-typedef unsigned long ubase_t;
+	FWK_E_EVENT_FULL = -6, /* event queue full */
+	FWK_E_EVENT_NODATA = -7, /* no event in the queue */
 
-#define FOREVER -1
-#if defined(MFH) || defined(HOST)
-typedef uint64_t fwk_addr_t;
-#define fwk_addr_f PRIu64
-#elif defined(DMC)
-typedef uint32_t fwk_addr_t;
-#define fwk_addr_f PRIu32
-#else
-#error "Unsupported running time..."
-#endif
+	FWK_E_NO_MEM = -8, /* No dynamic memory to alloc */
+	FWK_E_RESOURCE = -9, /* lack resource */
+	FWK_E_EMPTY = -10, /* request resource exhaust */
+	FWK_E_FULL = -11, /* no space to accept new request */
 
-#endif /* FWK_BASIC_TYPES_H */
+} fwk_errCode_t;
+
+#endif /* FWK_ERROR_CODE_H */
