@@ -391,7 +391,8 @@ void fwk_showQueue(fwk_queueID_t qID)
 		if (pQid->attr.size) {
 			for (k = pQid->head; k < end; ++k) {
 				idx = k % pQid->attr.depth;
-				printf("\t%i: msg=%s\n", idx, (char*)pQid->msgQ + idx * pQid->attr.size);
+				fwk_msgNode_t* pNode = pQid->varQ + idx;
+				printf("\t%i: msg[len %i]=%s\n", idx, pNode->msgLen, (char*)pQid->msgQ + idx * pQid->attr.size);
 			}
 		} else {
 			uint8_t* msgQTail = (uint8_t*)(pQid->msgQ) + pQid->attr.maxBufSize;
@@ -407,7 +408,7 @@ void fwk_showQueue(fwk_queueID_t qID)
 	} else {
 		for (i = 0; i < FWK_QUEUE_MAX_LIMIT; ++i) {
 			if (gFwkQueueList[i].mid) {
-				printf("%i: ", i);
+				printf("Queue[%i]: ", i);
 				fwk_showQueue(&gFwkQueueList[i]);
 			}
 		}

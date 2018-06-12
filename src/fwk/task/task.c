@@ -25,6 +25,7 @@
 
 #include <errno.h>
 #include <string.h>
+#include <limits.h>
 
 static fwk_taskList_t gFwkTaskList[FWK_TASK_MAX_LIMIT];
 static int gCurTaskCount = 0;
@@ -150,7 +151,9 @@ int fwk_createTask(fwk_taskAttr_t* pAttr, fwk_taskID_t* pTid)
 	pTcb->attr.policy = pAttr->policy;
 	pTcb->attr.priority = pAttr->priority;
 	fwk_memmgmt_cpy(&pTcb->attr.resource, &pAttr->resource, sizeof(pAttr->resource));
-	if (!pTcb->attr.resource.stackSize) pTcb->attr.resource.stackSize = 20*1024;
+	if (pTcb->attr.resource.stackSize < PTHREAD_STACK_MIN) { //ARM64=131072, ARM32=16384
+		pTcb->attr.resource.stackSize = PTHREAD_STACK_MIN;
+	}
 	pTcb->attr.independent = pAttr->independent;
 	pTcb->attr.taskType = pAttr->taskType;
 	pTcb->attr.loopTimes = pAttr->loopTimes;
@@ -163,26 +166,39 @@ int fwk_createTask(fwk_taskAttr_t* pAttr, fwk_taskID_t* pTid)
 	CHECK(rc);
 	rc += pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED); //PTHREAD_CREATE_JOINABLE
 	CHECK(rc);
+#if 0
+	size_t sz = 0;
+	rc += pthread_attr_getstacksize (&attr, &sz);
+	printf("default stack size: %u -> %u rc %i\n", (unsigned int)sz, (unsigned int)pTcb->attr.resource.stackSize, rc);
+#endif
 	rc += pthread_attr_setstacksize (&attr, pTcb->attr.resource.stackSize);
 	CHECK(rc);
-	rc += pthread_attr_setinheritsched (&attr, PTHREAD_EXPLICIT_SCHED);
+	rc += pthread_attr_setinheritsched (&attr, PTHREAD_EXPLICIT_SCHED); //PTHREAD_INHERIT_SCHED
 	CHECK(rc);
+#ifndef HOST //EPERM  No permission to set the scheduling policy and parameters specified in attr
 	rc += pthread_attr_setschedpolicy (&attr, pTcb->attr.policy);
 	CHECK(rc);
-	struct sched_param schedParm;
-	rc += pthread_attr_getschedparam (&attr, &schedParm);
-	CHECK(rc);
-	schedParm.__sched_priority = pTcb->attr.priority;
-	CHECK(rc);
-	rc += pthread_attr_setschedparam (&attr, &schedParm);
-	CHECK(rc);
-	rc += pthread_attr_setscope(&attr, pTcb->attr.taskType ? PTHREAD_SCOPE_PROCESS : PTHREAD_SCOPE_SYSTEM);
+	if (pTcb->attr.policy == SCHED_FIFO || pTcb->attr.policy == SCHED_RR) {
+		struct sched_param schedParm;
+		rc += pthread_attr_getschedparam (&attr, &schedParm);
+		CHECK(rc);
+		schedParm.__sched_priority = pTcb->attr.priority;
+		CHECK(rc);
+		rc += pthread_attr_setschedparam (&attr, &schedParm);
+		CHECK(rc);
+	} else {
+		fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK, FWK_BASICTRACE_LEVEL_WRN,
+			"Warning: sched policy %i can't support priority %i\n", pTcb->attr.policy, pTcb->attr.priority);
+	}
+#endif
+	//rc += pthread_attr_setscope(&attr, pTcb->attr.taskType ? PTHREAD_SCOPE_PROCESS : PTHREAD_SCOPE_SYSTEM);
+	rc += pthread_attr_setscope(&attr, PTHREAD_SCOPE_SYSTEM);
 	CHECK(rc);
 	if (rc) {
 		fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK, FWK_BASICTRACE_LEVEL_WRN,
 			"pthread_attr_set failed [%s], rc %i, errno %i\n", pTcb->attr.name, rc, errno);
 	}
-	rc += pthread_create(&pid, &attr, fwk_threadWrapper, pTcb);
+	rc = pthread_create(&pid, &attr, fwk_threadWrapper, pTcb);
 	CHECK(rc);
 	if (rc) {
 		fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK, FWK_BASICTRACE_LEVEL_ERR,
@@ -218,7 +234,7 @@ int fwk_createNormalTask(const char* const name, fwk_taskID_t * tid, fwk_taskFun
 	if (name) strncpy(attr.name, name, FWK_TASK_NAME_MAX_LEN);
 	attr.func = func;
 	attr.args = args;
-	attr.policy = SCHED_OTHER; //SCHED_RR, SHCED_FIFO
+	attr.policy = SCHED_OTHER; //0-SCHED_NORMAL/OTHER, 1-SHCED_FIFO, 2-SCHED_RR
 	attr.priority = priority;
 	fwk_memmgmt_cpy(&attr.resource, &resource, sizeof(resource));
 	attr.independent = independent;
@@ -352,6 +368,17 @@ void* fwk_taskMemPool(fwk_taskID_t tid)
 	return pTask->pid;
 }
 
+int fwk_terminateTask()
+{
+	fwk_taskID_t tid = fwk_myTaskId();
+	if (!tid) return FWK_E_INTERNAL;
+	fwk_taskList_t* pTask = (fwk_taskList_t*)(tid);
+	if (pTask) {
+		pTask->attr.loopTimes = 0;
+	}
+	return 0;
+}
+
 void fwk_showTask(fwk_taskID_t tid)
 {
 	int i;
@@ -359,7 +386,7 @@ void fwk_showTask(fwk_taskID_t tid)
 	if (pTask) {
 		//fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK, FWK_BASICTRACE_LEVEL_ERR,
 		printf(
-			"name=%s, func=%"fwk_addr_f", args=%"fwk_addr_f", policy=%i, priority=%i, "
+			"task name=%s, func=%"fwk_addr_f", args=%"fwk_addr_f", policy=%i, priority=%i, "
 			"resource[stackSize=%i, memPoolSize=%ld, queueSize=%i, queueDepth=%i], "
 			"independent=%i, taskType=%i, loopTimes=%i, initFunc=%"fwk_addr_f"; tid=%"fwk_addr_f", taskPause=%i\n",
 			pTask->attr.name,
@@ -367,7 +394,7 @@ void fwk_showTask(fwk_taskID_t tid)
 			(fwk_addr_t)pTask->attr.args,
 			pTask->attr.policy,
 			pTask->attr.priority,
-			pTask->attr.resource.stackSize,
+			(int)pTask->attr.resource.stackSize,
 			pTask->attr.resource.memPoolSize,
 			pTask->attr.resource.queueSize,
 			pTask->attr.resource.queueDepth,
@@ -383,7 +410,7 @@ void fwk_showTask(fwk_taskID_t tid)
 	} else {
 		for (i = 0; i < FWK_TASK_MAX_LIMIT; ++i) {
 			if (gFwkTaskList[i].used != 0) {
-				printf("%i: ", i);
+				printf("Task[%i]: ", i);
 				fwk_showTask(&gFwkTaskList[i]);
 			}
 		}

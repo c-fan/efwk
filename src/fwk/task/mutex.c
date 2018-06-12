@@ -239,7 +239,7 @@ void fwk_showMutex(void* mid)
 		printf("mutex state:[lock=%i, count=%i, owner=%i, kind=%i, nusers=%i, spins=%i",
 			p->mutex.__data.__lock, p->mutex.__data.__count, p->mutex.__data.__owner,
 			p->mutex.__data.__kind, p->mutex.__data.__nusers, p->mutex.__data.__spins);
-#if defined(MFH) || defined(HOST)
+#if defined(MFH) || defined(APB) || defined(HOST)
 		__pthread_list_t* next = &(p->mutex.__data.__list);
 #elif defined(DMC)
 		__pthread_slist_t* next = &(p->mutex.__data.__list);
@@ -398,7 +398,7 @@ void fwk_showCond(void* cid)
 	if (p) {
 		//fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK, FWK_BASICTRACE_LEVEL_ERR,
 		printf(
-			"attr[name=%s, pshared=%i, clock=%i]\n",
+			"cond attr[name=%s, pshared=%i, clock=%i]\n",
 			p->attr.name,
 			p->attr.pshared,
 			p->attr.clock
@@ -416,7 +416,7 @@ void fwk_showCond(void* cid)
 	} else {
 		for (i = 0; i < FWK_COND_MAX_LIMIT; ++i) {
 			if (gFwkCondList[i].used) {
-				printf("%i: ", i);
+				printf("Cond[%i]: ", i);
 				fwk_showCond(&gFwkCondList[i]);
 			}
 		}
@@ -540,7 +540,7 @@ void fwk_showSemaphore(void* sid)
 	if (p) {
 		//fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK, FWK_BASICTRACE_LEVEL_ERR,
 		printf(
-			"attr[name=%s, pshared=%i, value=%u]\n",
+			"semaphore attr[name=%s, pshared=%i, value=%u]\n",
 			p->attr.name,
 			p->attr.pshared,
 			p->attr.value
