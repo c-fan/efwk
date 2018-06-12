@@ -96,6 +96,14 @@ extern int fwk_task_receiveEvent(fwk_event_t * event, int timeout);
  */
 extern int fwk_task_clearEventQueue(fwk_taskID_t tid);
 
+//Event between threads, without task encapsulation
+int fwk_createEvent(uint16_t msgLen, uint8_t msgDepth, void** eid, const char* name);
+int fwk_sendEvent(void* eid, void* data, uint16_t datalen, int timeout);
+int fwk_waitEvent(void* eid, void * buffer, uint16_t bufsize, int timeout);
+void* fwk_findEvent(const char* name);
+int fwk_clearEvent(void* eid);
+void fwk_showEvent(void* eid);
+
 #ifdef __cplusplus
 } /* extern C */
 #endif

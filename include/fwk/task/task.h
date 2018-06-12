@@ -51,11 +51,11 @@ typedef void *(*fwk_taskFunc_proto_t)(void *);
 typedef struct
 {
 	/* stack size */
-	uint16_t stackSize;
+	size_t stackSize;
 	/* mem pool size */
 	ubase_t memPoolSize;
 	/* default event queue */
-	uint8_t queueSize; /* max size for each event in the queue */
+	uint16_t queueSize; /* max size for each event in the queue */
 	uint8_t queueDepth; /* max number of events */
 } fwk_taskRes_t;
 
@@ -87,6 +87,7 @@ typedef struct {
 extern void fwk_showTask(fwk_taskID_t tid);
 extern int fwk_createTask(fwk_taskAttr_t* pAttr, fwk_taskID_t* pTid);
 extern void* fwk_taskMemPool(fwk_taskID_t tid);
+extern int fwk_terminateTask();
 
 /*
  * Create preemptive task

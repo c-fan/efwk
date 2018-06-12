@@ -47,7 +47,7 @@ typedef struct {
 	char name[FWK_QUEUE_NAME_MAX_LEN];
 	uint8_t depth; /* max message number */
 	uint16_t size; /* each message length */
-	uint16_t maxBufSize; /* total messasge buffer size */
+	uint32_t maxBufSize; /* total messasge buffer size */
 }fwk_queueAttr_t;
 int fwk_createQueue(fwk_queueAttr_t* pQAttr, void* mid, fwk_queueID_t* qid);
 int fwk_msgQSend(fwk_queueID_t qID, void* data, uint16_t size, void* head, uint16_t headLen, int priority);
