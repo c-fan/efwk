@@ -37,7 +37,7 @@ typedef int bool_t;
 typedef unsigned long ubase_t;
 
 #define FOREVER -1
-#if defined(MFH) || defined(HOST)
+#if defined(MFH) || defined(APB) || defined(HOST)
 typedef uint64_t fwk_addr_t;
 #define fwk_addr_f PRIu64
 #elif defined(DMC)
