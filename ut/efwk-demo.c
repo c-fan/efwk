@@ -264,6 +264,62 @@ void* evtB(void* args)
   return &rc;
 }
 
+void* evt1(void* args)
+{
+  static int sn = 0, rc = 0;
+  int i;
+  int timeout = 1000;
+  char msg[FWK_QUEUE_MSG_DEF_LEN];
+  void* eid1 = fwk_findEvent("evt1");
+  void* eid2 = fwk_findEvent("evt2");
+
+  for (i = 0; i < randomN(3); ++i) {
+    sprintf(msg, "%s:%i", __func__, ++sn);
+    if (eid2) {
+      rc = fwk_sendEvent(eid2, msg, strlen(msg), timeout);
+      printf("%s, sent with %i\n", msg, rc);
+    }
+    sleep(randomN(4));
+  }
+
+  for (i = 0; i < randomN(4); ++i) {
+    if (eid1) {
+      rc = fwk_waitEvent(eid1, msg, sizeof(msg), timeout);
+      printf("[%s] received by %s with rc %i, timeout %i\n", msg, __func__, rc, timeout);
+    }
+    sleep(randomN(2));
+  }
+  return &rc;
+}
+
+void* evt2(void* args)
+{
+  static int sn = 0, rc = 0;
+  int i;
+  int timeout = -1;
+  char msg[FWK_QUEUE_MSG_DEF_LEN];
+  void* eid1 = fwk_findEvent("evt1");
+  void* eid2 = fwk_findEvent("evt2");
+
+  for (i = 0; i < randomN(3); ++i) {
+    sprintf(msg, "%s:%i", __func__, ++sn);
+    if (eid1) {
+      rc = fwk_sendEvent(eid1, msg, strlen(msg), timeout);
+      printf("%s, sent with %i\n", msg, rc);
+    }
+    sleep(randomN(4));
+  }
+
+  for (i = 0; i < randomN(4); ++i) {
+    if (eid2) {
+      rc = fwk_waitEvent(eid2, msg, sizeof(msg), timeout);
+      printf("[%s] received by %s with rc %i, timeout %i\n", msg, __func__, rc, timeout);
+    }
+    sleep(randomN(2));
+  }
+  return &rc;
+}
+
 void* arbitor(void* args)
 {
   return NULL;
@@ -309,7 +365,8 @@ void* preFunc(void* args)
   initMutex(NULL);
   initSema(NULL);
   rc += *(int*)initQueue(NULL);
-  rc += initCliSvr();
+  //rc += initCliSvr();
+  cliDemo(NULL);
   return &rc;
 }
 
@@ -456,7 +513,10 @@ int cmdMain(int argc, char** argv)
     "queueShow: show queue list",
     "eventDemo: create event tasks: evtA, evtB",
     "eventSend: send event to evtA and evtB",
-    "eventShow: show event list",
+    "evtDemo: create independent event: evt1, evt2",
+    "evtSend: send event to evt1 or evt2",
+    "evtRecv: receive event from evt1 or evt2",
+    "evtShow: show event list",
     "timerDemo: initialize timer wheel and start timer",
     "timerStart: start timer ",
     "timerStop: stop timer",
@@ -611,8 +671,37 @@ int cmdMain(int argc, char** argv)
     fwk_eventType_t eventType = (fwk_eventType_t)(__LINE__);
     rc = fwk_task_sendEvent(dest, eventType, "Hello", 8, -1);
 
-  //} else if (!strcmp(cmd, "eventShow")) {
-  //  fwk_task_showEvent();
+  } else if(!strcmp(cmd, "evtDemo")) {
+    fwk_taskAttr_t AAttr = {"evt1", NULL, evt1, NULL, SCHED_FIFO, 50, {0, 0, 0, 0}, 1, 0, -1};
+    rc = fwk_createTask(&AAttr, &tid);
+    printf("evt1 tid: %"fwk_addr_f", rc %i\n", (fwk_addr_t)tid, rc);
+    rc = fwk_createEvent(20, 8, NULL, "evt1");
+
+    fwk_taskAttr_t BAttr = {"evt2", NULL, evt2, NULL, SCHED_FIFO, 10, {0, 0, 0, 0}, 1, 0, -1};
+    rc = fwk_createTask(&BAttr, &tid);
+    printf("evt2 tid: %"fwk_addr_f", rc %i\n", (fwk_addr_t)tid, rc);
+    rc = fwk_createEvent(20, 8, NULL, "evt2");
+
+  } else if(!strcmp(cmd, "evtSend")) {
+    if (argc > 1) {
+      strcpy(buf, argv[1]);
+    } else {
+      strcpy(buf, "evt1");
+    }
+    void* eid = fwk_findEvent(buf);
+    rc = fwk_sendEvent(eid, "Hello", 8, -1);
+
+  } else if(!strcmp(cmd, "evtRecv")) {
+    if (argc > 1) {
+      strcpy(buf, argv[1]);
+    } else {
+      strcpy(buf, "evt1");
+    }
+    void* eid = fwk_findEvent(buf);
+    rc = fwk_waitEvent(eid, buf, sizeof(buf), -1);
+
+  } else if (!strcmp(cmd, "evtShow")) {
+    fwk_showEvent(NULL);
 
   } else if(!strcmp(cmd, "timerDemo")) {
     rc = initTimerDemo();
@@ -649,6 +738,18 @@ int cmdMain(int argc, char** argv)
   return rc;
 }
 
+int testCase()
+{
+  int rc = 0;
+  fwk_taskID_t tid;
+  uint8_t priority = 0;
+  fwk_taskRes_t resource;
+  memset(&resource, 0, sizeof(resource));
+  rc = fwk_createNormalTask(NULL, &tid, timer, NULL, priority, resource, 1);
+  CHECK(rc);
+  return rc;
+}
+
 int main(int argc, char** argv)
 {
 #define ARGS_CNT        8             /* Max argv entries */
@@ -658,6 +759,7 @@ int main(int argc, char** argv)
   char ch = 0;
   char* cmdArr[ARGS_CNT];
 
+  //testCase();
   preFunc(NULL);
   for (;;) {
     cmdLine[0] = 0;
