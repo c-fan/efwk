@@ -24,7 +24,7 @@
  *---------------------------------------------------------------------------
  */
 
-#include <pthread.h> 
+#include <pthread.h>
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -34,18 +34,16 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <stdio.h>   
-#include "fwk/cli/cli.h"
-#include  <fwk/task/task.h>
+#include <stdio.h>
+#include <fwk/cli/cli.h>
+#include <fwk/task/task.h>
 
-struct cli_def *cli;
+int efwk_cli_idle_timeout(struct cli_def *p_cli_def);
+int efwk_cli_thread_create(void);
 
-int efwk_cli_idle_timeout();
-int efwk_cli_thread_create();
-
-struct cli_def * efwk_cli_init()
+struct cli_def * efwk_cli_init(void)
 {
-    cli = cli_init();
+    struct cli_def *cli = cli_init();
 
     cli_set_banner(cli, "Connect to server"); // greeting info when user connects
     cli_set_hostname(cli, "Cli"); // cli hostname
@@ -54,7 +52,7 @@ struct cli_def * efwk_cli_init()
     // disable some default command
     cli_unregister_command(cli,"logout");
     cli_unregister_command(cli,"quit");
-    cli_unregister_command(cli,"history");
+    //cli_unregister_command(cli,"history");
     cli_unregister_command(cli,"enable");
     cli_unregister_command(cli,"disable");
     cli_unregister_command(cli,"configure");
@@ -63,15 +61,15 @@ struct cli_def * efwk_cli_init()
     // if not set, means no authentication required.
     cli_allow_user(cli,"cli","cli");
 
-    // set idle timeout 
-    cli_set_idle_timeout_callback(cli, 180, efwk_cli_idle_timeout); 
+    // set idle timeout
+    cli_set_idle_timeout_callback(cli, 180, efwk_cli_idle_timeout);
 
     return cli;
 }
 
 typedef struct {
-  struct cli_def* cli;
-  int socket;
+    struct cli_def* cli;
+    int socket;
 }cli_arg_wrap_t;
 
 void *efwk_cli_loop_wrapper(void *arg)
@@ -86,22 +84,38 @@ void *efwk_cli_loop_wrapper(void *arg)
     return NULL;
 }
 
-int efwk_cli_idle_timeout()
+int efwk_cli_idle_timeout(__attribute__((unused)) struct cli_def *p_cli_def)
 {
-    cli_print(cli, "Idle timeout");
+    cli_print(p_cli_def, "Idle timeout");
     return CLI_QUIT;
 }
 
-void *efwk_cli_thread_func(void *arg)
+struct cli_def * efwk_cli_session_init(void)
 {
-	int s, x;
+    int i = 0, rc = 0;
+    struct cli_def * myCli;
+    myCli = efwk_cli_init();
+    while (gCliUserCmd[i].name) {
+        rc = efwk_cli_register_command(myCli, gCliUserCmd[i].name, gCliUserCmd[i].func, gCliUserCmd[i].tips);
+        if (rc == CLI_ERROR) {
+            printf("%s fail to register %i cmd, name=%s\n", __func__, i, gCliUserCmd[i].name);
+            break;
+        }
+        ++i;
+    }
+    return myCli;
+}
+
+void *efwk_cli_thread_func(__attribute__((unused)) void *arg)
+{
+    int s, x;
     struct sockaddr_in addr;
     int on = 1;
-	
+    (void)(arg);
+
     signal(SIGCHLD, SIG_IGN);
 
-	if ((s = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-    {
+    if ((s = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
         perror("socket");
         return NULL;
     }
@@ -111,115 +125,45 @@ void *efwk_cli_thread_func(void *arg)
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = htonl(INADDR_ANY);
     addr.sin_port = htons(EFWK_CLI_PORT);
-    if (bind(s, (struct sockaddr *) &addr, sizeof(addr)) < 0)
-    {
+    if (bind(s, (struct sockaddr *) &addr, sizeof(addr)) < 0) {
         perror("bind");
         return NULL;
     }
 
-    if (listen(s, 50) < 0)
-    {
+    if (listen(s, 50) < 0) {
         perror("listen");
         return NULL;
     }
 
-    printf("Listening on port %d\n", EFWK_CLI_PORT);
-    while ((x = accept(s, NULL, 0)))
-    {
-#if 0
-        int pid = fork();
-        if (pid < 0)
-        {
-            perror("fork");
-            return NULL;
-        }
+    printf("CLI listening on port %d\n", EFWK_CLI_PORT);
+    while ((x = accept(s, NULL, 0))) {
+        socklen_t len = sizeof(addr);
+        if (getpeername(x, (struct sockaddr *) &addr, &len) >= 0)
+            printf("CLI accepted connection %i from %s\n", x, inet_ntoa(addr.sin_addr));
 
-        // parent
-        if (pid > 0)
-        {
-            socklen_t len = sizeof(addr);
-            if (getpeername(x, (struct sockaddr *) &addr, &len) >= 0)
-                printf(" * accepted connection from %s\n", inet_ntoa(addr.sin_addr));
-
-            close(x);
-            continue;
-        }
-
-        // child
-        close(s);
-        cli_loop(cli, x);
-        exit(0);
-#else
-        // parent
-            socklen_t len = sizeof(addr);
-            if (getpeername(x, (struct sockaddr *) &addr, &len) >= 0)
-                printf(" * accepted connection from %s\n", inet_ntoa(addr.sin_addr));
-
-        // child
-        struct cli_def *newCli;
-        if (!(newCli = calloc(sizeof(struct cli_def), 1))) break;
-    
-        memcpy(newCli, cli,  sizeof(*cli));
-        if (!(newCli->buffer = calloc(newCli->buf_size, 1)))
-        {
-            free(newCli);
-            break;
-        }
-
-        static cli_arg_wrap_t args;
-        args.cli = newCli;
+        cli_arg_wrap_t args;
+        args.cli = efwk_cli_session_init();
         args.socket = x;
         fwk_taskID_t tid;
         fwk_taskRes_t resource = {1024*1024, 0, 0, 0};
-#if 1
-        int rc = fwk_createNormalTask("cliClt", &tid, efwk_cli_loop_wrapper, &args, 1, resource, 1);
-        printf("CLI Client socket %i tid: %"fwk_addr_f" with rc %i\n", x, (fwk_addr_t)tid, rc);
-#else
-    pthread_t thr;
-    int rc = pthread_create(&thr, NULL, efwk_cli_loop_wrapper, &args);
-    if (rc != 0)
-    {
-        printf("create thread failed (%i)!\n", rc);
+        int rc = fwk_createDisposableTask("cliClt", &tid, efwk_cli_loop_wrapper, &args, 1, resource, 1);
+        printf("%s to create CLI Client, socket %i, tid: %"fwk_addr_f"\n",  rc ? "Fail" : "Success", x, (fwk_addr_t)tid);
     }
-#endif
-#endif
-    }
-	
-    cli_done(cli);
-	
-	printf("end .... \r\n");
 
     return NULL;
 }
 
 
-int efwk_cli_start()
+int efwk_cli_start(void)
 {
-#if 0
-    pthread_t thr;
-    if(pthread_create(&thr,NULL,efwk_cli_thread_func,NULL)!=0)
-    {
-        printf("create thread failed!\n");
-        return CLI_ERROR;
-    }
-
-    return CLI_OK;
-#elif 0
-  fwk_taskID_t tid;
-  fwk_taskAttr_t tAttr = {"cliSvr", NULL, efwk_cli_thread_func, NULL, SCHED_FIFO, 50, {1024*1024, 0, 0, 0}, 1, 0, -1};
-  int rc = fwk_createTask(&tAttr, &tid);
-  printf("CLI Server tid: %"fwk_addr_f"\n", (fwk_addr_t)tid);
-  return rc;
-#else
-  fwk_taskID_t tid;
-  fwk_taskRes_t resource = {1024*1024, 0, 0, 0};
-  int rc = fwk_createNormalTask("cliSvr", &tid, efwk_cli_thread_func, NULL, 1, resource, 1);
-  printf("CLI Server tid: %"fwk_addr_f"\n", (fwk_addr_t)tid);
-  return rc;
-#endif
+    fwk_taskID_t tid;
+    fwk_taskRes_t resource = {1024*1024, 0, 0, 0};
+    int rc = fwk_createDisposableTask("cliSvr", &tid, efwk_cli_thread_func, NULL, 1, resource, 1);
+    printf("%s to create CLI Server, tid: %"fwk_addr_f"\n", rc ? "Fail" : "Success", (fwk_addr_t)tid);
+    return rc;
 }
 
-int efwk_cli_register_command(const char *command, 
+int efwk_cli_register_command(struct cli_def * cli, const char *command,
     int (*callback)(struct cli_def *cli, const char *, char **, int),
     const char *help)
 {
