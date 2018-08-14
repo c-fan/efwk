@@ -87,7 +87,7 @@ typedef struct {
 extern void fwk_showTask(fwk_taskID_t tid);
 extern int fwk_createTask(fwk_taskAttr_t* pAttr, fwk_taskID_t* pTid);
 extern void* fwk_taskMemPool(fwk_taskID_t tid);
-extern int fwk_terminateTask();
+extern int fwk_terminateTask(void);
 
 /*
  * Create preemptive task
@@ -121,6 +121,9 @@ extern int fwk_createPreemptiveTask(const char* const name, fwk_taskID_t * tid,
 extern int fwk_createNormalTask(const char* const name, fwk_taskID_t * tid,
 		fwk_taskFunc_proto_t func, void * args, uint8_t priority,
 		fwk_taskRes_t resource, bool_t independent);
+extern int fwk_createDisposableTask(const char* const name, fwk_taskID_t * tid,
+		fwk_taskFunc_proto_t func, void * args, uint8_t priority,
+		fwk_taskRes_t resource, bool_t independent);
 
 /*
  * delete a task
@@ -135,7 +138,7 @@ extern int fwk_deleteTask(fwk_taskID_t tid);
 /*
  * voluntarily yield CPU
  */
-extern int fwk_yieldTask();
+extern int fwk_yieldTask(void);
 
 /*
  * suspend & resume a specific task
@@ -147,14 +150,14 @@ extern int fwk_resumeTask(fwk_taskID_t tid);
 /*
  * Get ID of the task that calling this API
  */
-extern fwk_taskID_t fwk_myTaskId();
+extern fwk_taskID_t fwk_myTaskId(void);
 
 /*
  * task ID, name identification mapping
  */
 extern fwk_taskID_t fwk_taskId(const char* const name);
 
-extern const char* const fwk_taskName(fwk_taskID_t tid);
+extern const char* fwk_taskName(fwk_taskID_t tid);
 
 #ifdef __cplusplus
 } /* extern C */

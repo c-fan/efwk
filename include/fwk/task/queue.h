@@ -50,7 +50,7 @@ typedef struct {
 	uint32_t maxBufSize; /* total messasge buffer size */
 }fwk_queueAttr_t;
 int fwk_createQueue(fwk_queueAttr_t* pQAttr, void* mid, fwk_queueID_t* qid);
-int fwk_msgQSend(fwk_queueID_t qID, void* data, uint16_t size, void* head, uint16_t headLen, int priority);
+int fwk_msgQSend(fwk_queueID_t qID, const void * data, uint16_t size, void* head, uint16_t headLen, int priority);
 int fwk_msgQRecv(fwk_queueID_t qID, void * buffer, uint16_t bufsize, int timeout, void* head, uint16_t headLen, void* cid, void* mid);
 
 /*
@@ -102,7 +102,7 @@ extern int fwk_createVarSizeQueue(fwk_queueID_t * qID, char * name,
  * 		FWK_TASK_QUEUE_E_INTERNAL
  * 		FWK_TASK_QUEUE_E_FULL
  */
-extern int fwk_sendToQueue(fwk_queueID_t qID, void * data, uint16_t size,
+extern int fwk_sendToQueue(fwk_queueID_t qID, const void * data, uint16_t size,
 		int timeout);
 
 /*

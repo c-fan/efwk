@@ -40,7 +40,10 @@ typedef struct
 	/* data sent by copy, i.e. data are encapsulated instead of just pass the pointer.
 	 * obviously, event by copy can also be used to implement data by reference, but that's specific task design choice (not recommended)
 	 */
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
 	uint8_t data[0]; /* data attached to the event */
+#pragma GCC diagnostic pop
 } fwk_event_t;
 
 #ifdef __cplusplus
@@ -61,7 +64,7 @@ extern "C"
  * 	error code defined in fwk_taskEventErrorCode_t if failed
  */
 extern int fwk_task_sendEvent(fwk_taskID_t dest, fwk_eventType_t eventType,
-		void * data, int datalen, int timeout);
+		const void * data, int datalen, int timeout);
 
 /*
  * Send an urgent event, this event will be on top of all other events not yet handled by the destine task.
@@ -77,7 +80,7 @@ extern int fwk_task_sendEvent(fwk_taskID_t dest, fwk_eventType_t eventType,
  * 	error code defined in fwk_taskEventErrorCode_t if failed
  */
 extern int fwk_task_sendOverullingEvent(fwk_taskID_t dest,
-		fwk_eventType_t eventType, void * data, int datalen, int timeout);
+		fwk_eventType_t eventType, const void * data, int datalen, int timeout);
 
 /*
  * Receive data from a queue.
@@ -98,7 +101,7 @@ extern int fwk_task_clearEventQueue(fwk_taskID_t tid);
 
 //Event between threads, without task encapsulation
 int fwk_createEvent(uint16_t msgLen, uint8_t msgDepth, void** eid, const char* name);
-int fwk_sendEvent(void* eid, void* data, uint16_t datalen, int timeout);
+int fwk_sendEvent(void* eid, const void * data, uint16_t datalen, int timeout);
 int fwk_waitEvent(void* eid, void * buffer, uint16_t bufsize, int timeout);
 void* fwk_findEvent(const char* name);
 int fwk_clearEvent(void* eid);
