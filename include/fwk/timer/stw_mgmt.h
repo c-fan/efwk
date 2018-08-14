@@ -6,10 +6,6 @@
 #ifndef __STW_MGMT_H__
 #define __STW_MGMT_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif /* __cplusplus */
-
 #include <fwk/timer/stw_timer.h>
 
 /*
@@ -29,6 +25,10 @@ enum {
    STW_TICK_TMR_TYPE     = 1,
    STW_PERIODIC_TMR_TYPE = 2
 };
+
+#ifdef __cplusplus
+extern "C" {
+#endif /* __cplusplus */
 
 /*
  * Unlock the mutex for timer.
@@ -53,48 +53,48 @@ extern void tmr_destroy_mutex(void);
 /*
  * Initial the whole static timer list.
  */
-extern void tmr_timer_list_init();
+extern void tmr_timer_list_init(void);
 
 /*
  * Initial the single timer task .
  */
-extern void tmr_timer_init();
+extern void tmr_timer_init(void);
 
 /*
  * Find the first available timer node from the timer list .
  */
-extern bool_t tmr_find_free_tmrNode(char * timer_name,stw_tmr_Node_t **tmrNode);
+extern bool_t tmr_find_free_tmrNode(const char *timer_name,stw_tmr_Node_t **tmrNode);
 
 /*
  * Find the specific timer node from the timer list .
  */
-extern bool_t tmr_find_tmrNode(char * timer_name,stw_tmr_Node_t **tmrNode);
+extern bool_t tmr_find_tmrNode(const char *timer_name,stw_tmr_Node_t **tmrNode);
 
 /*
  * Add a new timer to the timer list .
  */
-extern bool_t tmr_add_timerNode(char *timer_name, uint32_t delay, uint32_t periodic_delay,
-                                void *tid, void *user_cb, void *parm);
+extern bool_t tmr_add_timerNode(const char *timer_name, uint32_t delay, uint32_t periodic_delay,
+                                void *tid, stw_call_back_t user_cb, void *parm);
 
 /*
  * Delete the specific timer from the timer list .
  */
-extern bool_t tmr_delete_timerNode(char *timer_name);
+extern bool_t tmr_delete_timerNode(const char *timer_name);
 
 /*
  * Show the specific timer from the timer list .
  */
-extern bool_t tmr_show_timerNode(char *timer_name);
+extern bool_t tmr_show_timerNode(const char *timer_name);
 
 /*
  * Start the specific timer .
  */
-extern bool_t tmr_start_timer(char *timer_name);
+extern bool_t tmr_start_timer(const char *timer_name);
 
 /*
  * Stop the specific timer .
  */
-extern bool_t tmr_stop_timer(char *timer_name);
+extern bool_t tmr_stop_timer(const char *timer_name);
 
 /*
  * Main timer task function.

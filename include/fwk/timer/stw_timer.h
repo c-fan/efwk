@@ -110,19 +110,27 @@ typedef struct {
     stw_links_t  *spokes;
 } stw_t;
 
+struct stw_tmr_t;
+/*
+ * Application call-back type to be invoked at timer
+ * expiration.  The call-back must be short-n-sweet,
+ * non-blocking.
+ */
+typedef void (*stw_call_back_t)(struct stw_tmr_t *tmr, void *parm);
+
 /*
  * stw_tmr_t
  *  Definition of a timer element.
  *  This can be malloc'ed or embedded into an existing
  *  application structure.
  */
-typedef struct {
+typedef struct stw_tmr_t {
     stw_links_t links;
     uint32_t    rotation_count;
     uint32_t    delay;            /* initial delay       */
     uint32_t    periodic_delay;   /* auto-restart if > 0 */
     void        *tid;
-    void        *func_ptr;
+    stw_call_back_t func_ptr;
     void        *parm;
 } stw_tmr_t;
 
@@ -138,18 +146,11 @@ typedef struct {
     char            timer_name[STW_NAME_LENGTH];
     //bool_t       threadInfo_valid;
     void* tid;
-    void            *func_ptr;
+    stw_call_back_t func_ptr;
     //bool_t       parm_valid;
     void            *parm;
     stw_tmr_t       tmr;    
 } stw_tmr_Node_t;
-
-/*
- * Application call-back type to be invoked at timer
- * expiration.  The call-back must be short-n-sweet,
- * non-blocking.
- */
-typedef void (*stw_call_back)(stw_tmr_t *tmr, void *parm);
 
 /*
  * Unlock the mutex for timer tick.
@@ -204,7 +205,7 @@ stw_timer_start(stw_t  *stw,
              uint32_t   delay,
              uint32_t   periodic_delay,
                 void   *tid,
-                void   *user_cb,
+      stw_call_back_t   user_cb,
                 void   *parm);
 
 /*
