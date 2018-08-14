@@ -244,6 +244,22 @@ int fwk_createNormalTask(const char* const name, fwk_taskID_t * tid, fwk_taskFun
 	return fwk_createTask(&attr, tid);
 }
 
+int fwk_createDisposableTask(const char* const name, fwk_taskID_t * tid, fwk_taskFunc_proto_t func, void * args, uint8_t priority, fwk_taskRes_t resource, bool_t independent)
+{
+	fwk_taskAttr_t attr = {0,};
+	if (name) strncpy(attr.name, name, FWK_TASK_NAME_MAX_LEN);
+	attr.func = func;
+	attr.args = args;
+	attr.policy = SCHED_OTHER; //0-SCHED_NORMAL/OTHER, 1-SHCED_FIFO, 2-SCHED_RR
+	attr.priority = priority;
+	fwk_memmgmt_cpy(&attr.resource, &resource, sizeof(resource));
+	attr.independent = independent;
+	attr.taskType = 1;
+	attr.loopTimes = 1;
+	attr.initFunc = NULL;
+	return fwk_createTask(&attr, tid);
+}
+
 int fwk_deleteTask(fwk_taskID_t tid)
 {
 	fwk_taskList_t* pTask = (fwk_taskList_t*)(tid);
@@ -270,7 +286,7 @@ int fwk_deleteTask(fwk_taskID_t tid)
 	return rc;
 }
 
-int fwk_clearTask()
+int fwk_clearTask(void)
 {
 	int i, rc = 0;
 	for (i = 0; i < FWK_TASK_MAX_LIMIT; ++i) {
@@ -326,7 +342,7 @@ unsigned long int fwk_rawTid(fwk_taskID_t tid)
 	}
 }
 
-fwk_taskID_t fwk_myTaskId()
+fwk_taskID_t fwk_myTaskId(void)
 {
 	int i;
 	pthread_t pid = pthread_self();
@@ -353,7 +369,7 @@ fwk_taskID_t fwk_taskId(const char* const name)
 	return NULL;
 }
 
-const char* const fwk_taskName(fwk_taskID_t tid)
+const char* fwk_taskName(fwk_taskID_t tid)
 {
 	//pthread_getname_np(pid, name, len);
 	fwk_taskList_t* pTask = (fwk_taskList_t*)(tid);

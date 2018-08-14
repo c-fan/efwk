@@ -102,7 +102,7 @@ int fwk_createQueue(fwk_queueAttr_t* pQAttr, void* mid, fwk_queueID_t* qid)
 	fwk_memmgmt_set(pQid->msgQ, 0, qSize);
 	pQid->head = 0;
 	pQid->tail = pQid->head;
-	pQid->varQ = (fwk_msgNode_t*)((uint8_t*)pQid->msgQ + pQAttr->maxBufSize);
+	pQid->varQ = (fwk_msgNode_t*)((uint32_t*)pQid->msgQ + (pQAttr->maxBufSize + sizeof(uint32_t) - 1)/sizeof(uint32_t));
 	if (qid) *qid = pQid;
 	++gCurQueueCount;
 	if (rc) {
@@ -132,7 +132,7 @@ int fwk_createVarSizeQueue(fwk_queueID_t * qID, char * name, uint16_t maxBufSize
 	return rc;
 }
 
-int fwk_insertToVarQ_imp(fwk_queueList_t* pQid, void * data, uint16_t size, int msgIdx, void* head, uint16_t headLen)
+int fwk_insertToVarQ_imp(fwk_queueList_t* pQid, const void * data, uint16_t size, int msgIdx, void* head, uint16_t headLen)
 {
 	//used for building loop msgQ, in case of varSize queue
 	fwk_msgNode_t* pHead = pQid->varQ + pQid->head;
@@ -142,11 +142,11 @@ int fwk_insertToVarQ_imp(fwk_queueList_t* pQid, void * data, uint16_t size, int 
 	pNode->msgBuf = (uint8_t*)pHead->msgBuf - headLen - size;
 	if ((uint8_t*)pTail->msgBuf + pTail->msgLen > msgQTail) { //old tail is loop
 		int msgLoopLen = pTail->msgLen - ((ubase_t)msgQTail - (ubase_t)pTail->msgBuf);
-		if (pNode->msgBuf < pQid->msgQ + msgLoopLen) return FWK_E_QUEUE_FULL;
+		if ((uint8_t *)pNode->msgBuf < (uint8_t *)pQid->msgQ + msgLoopLen) return FWK_E_QUEUE_FULL;
 		if (headLen) fwk_memmgmt_cpy(pNode->msgBuf, head, headLen);
 		fwk_memmgmt_cpy((uint8_t*)pNode->msgBuf + headLen, data, size);
 	} else if (pNode->msgBuf < pQid->msgQ) { //new head is loop
-		int msgLoopLen = pQid->msgQ - pNode->msgBuf;
+		int msgLoopLen = (uint8_t *)pQid->msgQ - (uint8_t *)pNode->msgBuf;
 		pNode->msgBuf = msgQTail - (headLen + size - msgLoopLen);
 		if ((uint8_t*)pNode->msgBuf < ((uint8_t*)pTail->msgBuf + pTail->msgLen)) return FWK_E_QUEUE_FULL;
 		if ((uint8_t*)pNode->msgBuf + headLen > msgQTail) {
@@ -167,7 +167,7 @@ int fwk_insertToVarQ_imp(fwk_queueList_t* pQid, void * data, uint16_t size, int 
 	return 0;
 }
 
-int fwk_sendToVarQ_imp(fwk_queueList_t* pQid, void * data, uint16_t size, int msgIdx, void* head, uint16_t headLen)
+int fwk_sendToVarQ_imp(fwk_queueList_t* pQid, const void * data, uint16_t size, int msgIdx, void* head, uint16_t headLen)
 {
 	//used for building loop msgQ, in case of varSize queue
 	fwk_msgNode_t* pHead = pQid->varQ + pQid->head;
@@ -204,7 +204,7 @@ int fwk_sendToVarQ_imp(fwk_queueList_t* pQid, void * data, uint16_t size, int ms
 	return 0;
 }
 
-int fwk_sendToQueue(fwk_queueID_t qID, void * data, uint16_t size, int timeout)
+int fwk_sendToQueue(fwk_queueID_t qID, const void * data, uint16_t size, int timeout)
 {
 	int lck = 0, rc = 0;
 	fwk_queueList_t* pQid = (fwk_queueList_t*)qID;
@@ -218,7 +218,7 @@ int fwk_sendToQueue(fwk_queueID_t qID, void * data, uint16_t size, int timeout)
 	return rc;
 }
 
-int fwk_msgQSend(fwk_queueID_t qID, void* data, uint16_t size, void* head, uint16_t headLen, int priority)
+int fwk_msgQSend(fwk_queueID_t qID, const void * data, uint16_t size, void* head, uint16_t headLen, int priority)
 {
 	int rc = 0;
 	fwk_queueList_t* pQid = (fwk_queueList_t*)qID;

@@ -58,7 +58,7 @@ int fwk_msDeltaRemain(int timeout, clockid_t clk_id, struct timespec* baseTs)
 	return remain;
 }
 
-int fwk_getDefaultMutexPrioCeiling()
+int fwk_getDefaultMutexPrioCeiling(void)
 {
 	int rc = 0;
 	int priority = 0;

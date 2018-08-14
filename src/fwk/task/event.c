@@ -23,7 +23,7 @@
 #include <errno.h>
 #include <string.h>
 
-int fwk_task_sendEvent_imp(fwk_taskID_t dest, fwk_eventType_t eventType, void * data, int datalen, int timeout, int urgency)
+int fwk_task_sendEvent_imp(fwk_taskID_t dest, fwk_eventType_t eventType, const void * data, int datalen, int timeout, int urgency)
 {
 	int rc = 0, ck = 0;
 	fwk_taskList_t* pTask = (fwk_taskList_t*)(dest);
@@ -44,12 +44,12 @@ int fwk_task_sendEvent_imp(fwk_taskID_t dest, fwk_eventType_t eventType, void * 
 	return ck;
 }
 
-int fwk_task_sendEvent(fwk_taskID_t dest, fwk_eventType_t eventType, void * data, int datalen, int timeout)
+int fwk_task_sendEvent(fwk_taskID_t dest, fwk_eventType_t eventType, const void * data, int datalen, int timeout)
 {
 	return fwk_task_sendEvent_imp(dest, eventType, data, datalen, timeout, 0);
 }
 
-int fwk_task_sendOverullingEvent(fwk_taskID_t dest, fwk_eventType_t eventType, void * data, int datalen, int timeout)
+int fwk_task_sendOverullingEvent(fwk_taskID_t dest, fwk_eventType_t eventType, const void * data, int datalen, int timeout)
 {
 	return fwk_task_sendEvent_imp(dest, eventType, data, datalen, timeout, 1);
 }
@@ -136,7 +136,7 @@ int fwk_createEvent(uint16_t msgLen, uint8_t msgDepth, void** eid, const char* n
 	return rc;
 }
 
-int fwk_sendEvent(void* eid, void* data, uint16_t datalen, int timeout)
+int fwk_sendEvent(void* eid, const void * data, uint16_t datalen, int timeout)
 {
 	int rc = 0, ck = 0;
 	fwk_eventList_t* pEid = (fwk_eventList_t*)eid;
