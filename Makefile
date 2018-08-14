@@ -11,7 +11,7 @@ OBJDUMP  = $(CROSS_COMPILE)objdump
 
 SHELL = /bin/bash
 
-SUPPORTED_ARCHS:=x86 arm64 arm
+SUPPORTED_ARCHS:=x86_64 arm64 arm
 ifneq (,$(filter $(ARCH),$(SUPPORTED_ARCHS)))
     include $(SELF_DIR)archdep-$(ARCH).mk
 else
@@ -39,7 +39,13 @@ DynamicLib = $(LibDir)/libefwk.so
 AllLibs = $(StaticLib) $(DynamicLib)
 
 INCLUDE = -Iinclude
-CFLAGS += -g -O0 -Wall -MMD -MP -D_GNU_SOURCE $(INCLUDE) -D$(PLT)
+EXTRA_WARNINGS := -Wextra -pedantic -Wpointer-arith -Wwrite-strings \
+            -Wredundant-decls -Wnested-externs -Winline -Wno-long-long \
+            -Wuninitialized -Wstrict-prototypes -Wcast-align
+
+#            -Wshadow -Wconversion -Wmissing-prototypes -Wmissing-declarations \
+
+CFLAGS += -g -O0 -Wall $(EXTRA_WARNINGS) -MMD -MP -D_GNU_SOURCE $(INCLUDE) -D$(PLT)
 LDFLAGS = -L$(LibDir) -lefwks -lpthread -lcrypt
 
 UtSrc:=ut/efwk-demo.c
