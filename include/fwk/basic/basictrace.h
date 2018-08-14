@@ -29,10 +29,6 @@
 #define FWK_BASICTRACE_H_
 #include <fwk/basic/types.h>
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* bitmask for basic trace module are 32 bits: bit 1 to bit 32 */
 #define FWK_BASICTRACE_MODULE_FWK	(1 << 0)    	/* framework module		*/
 
@@ -41,6 +37,10 @@ extern "C" {
 #define FWK_BASICTRACE_LEVEL_ERR	(1 << 1)		/* level errors			*/
 #define FWK_BASICTRACE_LEVEL_WRN	(1 << 2)		/* level warning		*/
 #define FWK_BASICTRACE_LEVEL_INF	(1 << 3)		/* level informations	*/
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* basic trace api. */
 extern void fwk_basictrace_print(const uint32_t u4Mod, const uint32_t u4Level, const char *pi1Fmt, ...);
