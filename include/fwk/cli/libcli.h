@@ -1,12 +1,6 @@
 #ifndef __LIBCLI_H__
 #define __LIBCLI_H__
 
-// vim:sw=4 tw=120 et
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 #include <stdio.h>
 #include <stdarg.h>
 #include <sys/time.h>
@@ -37,6 +31,10 @@ extern "C" {
 
 #define CLI_MAX_LINE_LENGTH     4096
 #define CLI_MAX_LINE_WORDS      128
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 struct cli_def {
     int completion_callback;
@@ -90,7 +88,7 @@ struct cli_command {
     struct cli_command *parent;
 };
 
-struct cli_def *cli_init();
+struct cli_def *cli_init(void);
 int cli_done(struct cli_def *cli);
 struct cli_command *cli_register_command(struct cli_def *cli, struct cli_command *parent, const char *command,
                                          int (*callback)(struct cli_def *, const char *, char **, int), int privilege,

@@ -23,31 +23,29 @@
  *| 01		| JiangBo              | 2017-08-29	       |								|
  *---------------------------------------------------------------------------
  */
- 
 
 #ifndef _FWK_CLI_H__
 #define _FWK_CLI_H__
 
+#include "libcli.h"
+
+#define EFWK_CLI_PORT                8000   // cli connection port number
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include "libcli.h"
-
-
-#define EFWK_CLI_PORT                8000   // cli connection port number
 
 /*
   * Initialize cli environment and configure default settings
   *     1. set default greeting info
   *     2. set defalut hostname
   *     3. disable some defalut commands
-  *     4. add default authentication user name and password: username: 'cli', password:'cli' 
+  *     4. add default authentication user name and password: username: 'cli', password:'cli'
   *     5. set default idle time out as 60 seconds
   * Return:
   *     a poniter of cli_def struct
   */
-struct cli_def *efwk_cli_init();
+struct cli_def *efwk_cli_init(void);
 
 /*
   * register command to cli
@@ -59,14 +57,20 @@ struct cli_def *efwk_cli_init();
   *     CLI_ERROR when failed
   *     CLI_OK when successful
   */
-int efwk_cli_register_command(const char *command, 
-    int (*callback)(struct cli_def *cli, const char *, char **, int), 
-    const char *help);
+int efwk_cli_register_command(struct cli_def * cli, const char *command,
+    int (*callback)(struct cli_def *cli, const char *, char **, int), const char *help);
 
 /*
   * Start cli as an independent task
   */
-int efwk_cli_start();
+int efwk_cli_start(void);
+
+struct cli_user_cmd {
+    const char* name;
+    int (*func)(struct cli_def *cli, const char *, char *[], int);
+    const char* tips;
+};
+extern struct cli_user_cmd gCliUserCmd[];
 
 #ifdef __cplusplus
 }
