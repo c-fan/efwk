@@ -8,6 +8,7 @@
 #include <stdlib.h>
 
 #include <fwk/timer/stw_mgmt.h>
+#include <fwk/timer/stw_timer.h>
 #ifdef NANO_SLEEP_TIMER
 #include <time.h>
 #include <sys/times.h>
@@ -132,7 +133,7 @@ void tmr_destroy_mutex(void)
  *     Nothing
  *
  */
-void tmr_timer_list_init(){
+void tmr_timer_list_init(void){
     //if(tmr_list){
         /* MUTEX */
         tmr_lock_mutex();        
@@ -155,7 +156,7 @@ void tmr_timer_list_init(){
  *     Nothing
  *
  */
-void tmr_timer_init(){ 
+void tmr_timer_init(void){ 
     /*
      * create and configure nodal KPA timer   
      */   
@@ -189,7 +190,7 @@ void tmr_timer_init(){
  *    FALSE
  *    if tmrNode is not null, it points to the first free time node
  */
-bool_t tmr_find_free_tmrNode(char * timer_name,stw_tmr_Node_t **tmrNode){
+bool_t tmr_find_free_tmrNode(const char *timer_name,stw_tmr_Node_t **tmrNode){
     int currTmr;
 
     *tmrNode = NULL;
@@ -227,7 +228,7 @@ bool_t tmr_find_free_tmrNode(char * timer_name,stw_tmr_Node_t **tmrNode){
  *    FALSE
  *    if tmrNode is not null, it points to the first free time node
  */
-bool_t tmr_find_tmrNode(char * timer_name,stw_tmr_Node_t **tmrNode){
+bool_t tmr_find_tmrNode(const char *timer_name,stw_tmr_Node_t **tmrNode){
     int currTmr;
 
     *tmrNode = NULL;
@@ -277,8 +278,8 @@ bool_t tmr_find_tmrNode(char * timer_name,stw_tmr_Node_t **tmrNode){
  *    TRUE
  *    FALSE
  */
-bool_t tmr_add_timerNode(char *timer_name, uint32_t delay, uint32_t periodic_delay,
-                                void* tid, void *user_cb, void *parm){
+bool_t tmr_add_timerNode(const char *timer_name, uint32_t delay, uint32_t periodic_delay,
+                                void* tid, stw_call_back_t user_cb, void *parm){
     //char timer_name[STW_NAME_LENGTH] = {0,};
     stw_tmr_Node_t *tmrNode = NULL;    
 
@@ -337,7 +338,7 @@ bool_t tmr_add_timerNode(char *timer_name, uint32_t delay, uint32_t periodic_del
  *    TRUE
  *    FALSE
  */
-bool_t tmr_delete_timerNode(char *timer_name){
+bool_t tmr_delete_timerNode(const char *timer_name){
     //char timer_name[STW_NAME_LENGTH] = {0,};
     stw_tmr_Node_t *tmrNode = NULL;
     
@@ -382,7 +383,7 @@ bool_t tmr_delete_timerNode(char *timer_name){
  *    TRUE
  *    FALSE
  */
-bool_t tmr_show_timerNode(char *timer_name){
+bool_t tmr_show_timerNode(const char *timer_name){
     //char timer_name[STW_NAME_LENGTH] = {0,};
     stw_tmr_Node_t *tmrNode = NULL;
     
@@ -446,11 +447,11 @@ bool_t tmr_show_timerNode(char *timer_name){
  *    TRUE
  *    FALSE
  */
-bool_t tmr_start_timer(char *timer_name){
+bool_t tmr_start_timer(const char *timer_name){
     stw_tmr_Node_t *tmrNode = NULL;
 
     printf("%s timer=%s \n",
-           __FUNCTION__,
+           __func__,
            timer_name);
     if(!timer_name) 
         return FALSE;
@@ -503,7 +504,7 @@ bool_t tmr_start_timer(char *timer_name){
  *    TRUE
  *    FALSE
  */
-bool_t tmr_stop_timer(char *timer_name){
+bool_t tmr_stop_timer(const char *timer_name){
     stw_tmr_Node_t *tmrNode = NULL;
     
     if(!timer_name) 
@@ -540,7 +541,7 @@ bool_t tmr_stop_timer(char *timer_name){
  * This function is envoked as result of the sigalrm
  * to drive the timer wheel.
  */    
-static void timer_handler (int signum)
+static void timer_handler (__attribute__((unused)) int signum)
 {
     stw_timer_tick(stw_sys_handle);
 }
@@ -559,7 +560,7 @@ static void timer_handler (int signum)
  *    TRUE
  *    FALSE
  */
-void * tmr_main_task(void * ptr){
+void * tmr_main_task(__attribute__((unused)) void * ptr){
     printf("tmr_main_task!!!\n\n");
 #ifndef NANO_SLEEP_TIMER    
     /*

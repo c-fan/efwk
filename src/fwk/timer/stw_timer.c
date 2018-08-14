@@ -338,7 +338,7 @@ stw_timer_start (stw_t  *stw,
               uint32_t   delay,
               uint32_t   periodic_delay,
                   void  *tid,
-                void    *user_cb,
+       stw_call_back_t   user_cb,
                   void  *parm)
 {
     stw_links_t *next, *prev;
@@ -386,7 +386,7 @@ stw_timer_start (stw_t  *stw,
      * set user call_back and parameter
      */
     tmr->tid = tid; 
-    tmr->func_ptr       = (void *)user_cb;
+    tmr->func_ptr       = user_cb;
     tmr->parm           = parm;
     tmr->delay          = delay;
     tmr->periodic_delay = periodic_delay;
@@ -491,7 +491,7 @@ stw_timer_tick (stw_t *stw)
 {
     stw_links_t  *spoke, *next, *prev;
     stw_tmr_t *tmr;
-    stw_call_back user_call_back;
+    stw_call_back_t user_call_back;
 
     if ((stw == NULL) || (stw->magic_tag != MAGIC_TAG)) {
         return;
