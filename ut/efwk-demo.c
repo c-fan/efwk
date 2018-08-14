@@ -1,9 +1,9 @@
-#include  <fwk/task/task.h>
-#include  <fwk/task/queue.h>
-#include  <fwk/task/event.h>
-#include  <fwk/basic/basictrace.h>
-#include  <fwk/memmgmt/memmgmt.h>
-#include  <fwk/timer/stw_mgmt.h>
+#include <fwk/task/task.h>
+#include <fwk/task/queue.h>
+#include <fwk/task/event.h>
+#include <fwk/basic/basictrace.h>
+#include <fwk/memmgmt/memmgmt.h>
+#include <fwk/timer/stw_mgmt.h>
 
 #include <stdio.h>
 #include <string.h>
@@ -16,40 +16,38 @@
 #include <time.h>
 #include <sys/time.h>
 
-#include "fwk/cli/cli.h"
+#include <fwk/cli/cli.h>
+int gCliIdx = 0;
 int cmd_test(struct cli_def *cli, const char *command, char *argv[], int argc)
 {
     int i;
-    cli_print(cli, "called %s with \"%s\"", __func__, command);
-    cli_print(cli, "%d arguments:", argc);
+    printf("svr log: %s (idx %i) called by \"%s\", %i arguments:", __func__, gCliIdx, command, argc);
     for (i = 0; i < argc; i++)
-        cli_print(cli, "        %s", argv[i]);
-
-    printf("cmd_test called\n");
-
+        printf(" %s,", argv[i]);
+    printf("\n");
+    cli_print(cli, "cli=%p, %s : %s increment to %i \n", (void*)cli, command, __func__, gCliIdx++);
     return CLI_OK;
 }
 int cmd_test_2(struct cli_def *cli, const char *command, char *argv[], int argc)
 {
     int i;
-    cli_print(cli, "execute command: %s ",command);
-
+    printf("svr log: %s (idx %i) called by \"%s\", %i arguments:", __func__, gCliIdx, command, argc);
     for (i = 0; i < argc; i++)
-        cli_print(cli, "        %s", argv[i]);
-
-    printf("cmd_test_2 was called with command: %s ",command);
-    for (i = 0; i < argc; i++)
-        printf("%s ", argv[i]);
+        printf(" %s,", argv[i]);
     printf("\n");
-
+    cli_print(cli, "cli=%p, %s : %s increment to %i \n", (void*)cli, command, __func__, gCliIdx++);
     return CLI_OK;
 }
+
+struct cli_user_cmd gCliUserCmd[] = {
+    	{"test", cmd_test, "My 1st test command"},
+    	{"test2", cmd_test_2, "customer 2nd user cmd"},
+    	{NULL, NULL, NULL},
+};
+
 void* cliDemo(void* args)
 {
-    (void)args;
-    (void)efwk_cli_init();
-    efwk_cli_register_command("test",cmd_test,"My registe test function");
-    efwk_cli_register_command("test_2",cmd_test_2,"My registe test function_2");
+    (void)(args);
     efwk_cli_start();
     return NULL;
 }
@@ -59,7 +57,7 @@ void* mainLoop(void* args)
     sleep(10);
     return NULL;
 }
-int initCliSvr()
+int initCliSvr(void)
 {
   fwk_taskID_t tid;
   fwk_taskAttr_t tAttr = {"cliSvr", cliDemo, mainLoop, NULL, SCHED_FIFO, 50, {0, 20*1024, 0, 0}, 1, 0, -1};
@@ -87,7 +85,7 @@ void* gSid = NULL;
 int gTaskGui = 1;
 int gCounter = 0;
 
-void* consumer(void* args)
+void* consumer(__attribute__((unused)) void* args)
 {
   int rc = fwk_takeSemaphore(gSid, -1);
   if (rc) {
@@ -98,7 +96,7 @@ void* consumer(void* args)
   return NULL;
 }
 
-void* producer(void* args)
+void* producer(__attribute__((unused)) void* args)
 {
 //bearer,  fabricant,  begetter, generator
   int rc = fwk_giveSemaphore(gSid);
@@ -110,7 +108,7 @@ void* producer(void* args)
   return NULL;
 }
 
-void* master(void* args)
+void* master(__attribute__((unused)) void* args)
 {
   int rc = fwk_lockMutex(gMid, -1);
   if (rc) {
@@ -126,7 +124,7 @@ void* master(void* args)
   return NULL;
 }
 
-void* slave(void* args)
+void* slave(__attribute__((unused)) void* args)
 {
   int rc = fwk_lockMutex(gMid, -1);
   if (rc) {
@@ -142,7 +140,7 @@ void* slave(void* args)
   return NULL;
 }
 
-void* msgA(void* args)
+void* msgA(__attribute__((unused)) void* args)
 {
   static int sn = 0, rc = 0;
   int i;
@@ -168,7 +166,7 @@ void* msgA(void* args)
   return &rc;
 }
 
-void* msgB(void* args)
+void* msgB(__attribute__((unused)) void* args)
 {
   static int sn = 0, rc = 0;
   int i;
@@ -194,16 +192,16 @@ void* msgB(void* args)
   return &rc;
 }
 
-void* evtA(void* args)
+void* evtA(__attribute__((unused)) void* args)
 {
   static int sn = 0, rc = 0;
   int i;
   int timeout = -1;
   fwk_taskID_t dest;
 
-  char buf[FWK_QUEUE_MSG_DEF_LEN*3];
+  int buf[FWK_QUEUE_MSG_DEF_LEN];
   fwk_event_t* event = (fwk_event_t*)buf;
-  char* msg = buf + FWK_QUEUE_MSG_DEF_LEN - sizeof(fwk_event_t);
+  char* msg = (char*)buf + FWK_QUEUE_MSG_DEF_LEN - sizeof(fwk_event_t);
 
   for (i = 0; i < randomN(2); ++i) {
     sprintf(msg, "%s:%i", __func__, ++sn);
@@ -227,16 +225,16 @@ void* evtA(void* args)
   return &rc;
 }
 
-void* evtB(void* args)
+void* evtB(__attribute__((unused)) void* args)
 {
   static int sn = 0, rc = 0;
   int i;
   int timeout = 0;//-1;
   fwk_taskID_t dest;
 #if 1
-  char buf[FWK_QUEUE_MSG_DEF_LEN*3];
+  int buf[FWK_QUEUE_MSG_DEF_LEN];
   fwk_event_t* event = (fwk_event_t*)buf;
-  char* msg = buf + FWK_QUEUE_MSG_DEF_LEN - sizeof(fwk_event_t);
+  char* msg = (char*)buf + FWK_QUEUE_MSG_DEF_LEN - sizeof(fwk_event_t);
 #else
   fwk_event_t event;
   char msg[FWK_QUEUE_MSG_DEF_LEN - sizeof(fwk_event_t)];
@@ -264,7 +262,7 @@ void* evtB(void* args)
   return &rc;
 }
 
-void* evt1(void* args)
+void* evt1(__attribute__((unused)) void* args)
 {
   static int sn = 0, rc = 0;
   int i;
@@ -292,7 +290,7 @@ void* evt1(void* args)
   return &rc;
 }
 
-void* evt2(void* args)
+void* evt2(__attribute__((unused)) void* args)
 {
   static int sn = 0, rc = 0;
   int i;
@@ -320,17 +318,17 @@ void* evt2(void* args)
   return &rc;
 }
 
-void* arbitor(void* args)
+void* arbitor(__attribute__((unused)) void* args)
 {
   return NULL;
 }
 
-void* background(void* args)
+void* background(__attribute__((unused)) void* args)
 {
   return NULL;
 }
 
-void* initMutex(void* args)
+void* initMutex(__attribute__((unused)) void* args)
 {
   int rc = 0;
   rc = fwk_createMutex(NULL, &gMid);
@@ -340,7 +338,7 @@ void* initMutex(void* args)
   return NULL;
 }
 
-void* initSema(void* args)
+void* initSema(__attribute__((unused)) void* args)
 {
   int rc = 0;
   rc = fwk_createSemaphore(NULL, &gSid);
@@ -350,7 +348,7 @@ void* initSema(void* args)
   return NULL;
 }
 
-void* initQueue(void* args)
+void* initQueue(__attribute__((unused)) void* args)
 {
   uint8_t depth = 8;
   uint16_t size = FWK_QUEUE_MSG_DEF_LEN;
@@ -359,7 +357,7 @@ void* initQueue(void* args)
   return &rc;
 }
 
-void* preFunc(void* args)
+void* preFunc(__attribute__((unused)) void* args)
 {
   static int rc = 0;
   initMutex(NULL);
@@ -370,7 +368,7 @@ void* preFunc(void* args)
   return &rc;
 }
 
-void* postFunc(void* args)
+void* postFunc(__attribute__((unused)) void* args)
 {
   int rc = 0, i, retry = 2; //200
 
@@ -383,7 +381,6 @@ void* postFunc(void* args)
   if (rc) {
   	printf("release event failed: rc %i, errno %i\n", rc, errno);
   }
-  extern int fwk_clearTask();
   rc = fwk_clearTask();
   if (rc) {
   	printf("clear tasks failed: rc %i, errno %i\n", rc, errno);
@@ -411,7 +408,7 @@ void* postFunc(void* args)
   return NULL;
 }
 
-void* timer(void* args)
+void* timer(__attribute__((unused)) void* args)
 {
   static int i = 0;
   fwk_taskID_t tid = fwk_myTaskId();
@@ -423,24 +420,26 @@ void* timer(void* args)
 
 int gTimeATick = 0;
 int gTimeBTick = 0;
-void a_repeating_timer (stw_tmr_t *tmr, void *parm) 
+void a_repeating_timer (__attribute__((unused)) stw_tmr_t *tmr, void *parm) 
 {
     int cnt = *(int*)parm + 1;
     *(int*)parm = cnt;
     if (cnt % 10 == 0) {
-      printf("TimerA cb: %s timer a count=%i\n", __FUNCTION__, cnt);
+      printf("TimerA cb: %s timer a count=%i\n", __func__, cnt);
       //stw_timer_stats();
     } 
 } 
 
-void b_timer (void *parm)
+// TODO: Please original author check if the original implementation works if only one paramter declared (When
+// called back, invalid pointer shoudle be de-refernced.
+void b_timer (__attribute__((unused)) stw_tmr_t *tmr, void *parm)
 {
-    printf("TimerB cb: %s timer b count=%i\n", __FUNCTION__, ++*(int*)parm);
+    printf("TimerB cb: %s timer b count=%i\n", __func__, ++*(int*)parm);
 }
 
-void* timerClient(void* args)
+void* timerClient(__attribute__((unused)) void* args)
 {
-  char buf[FWK_QUEUE_MSG_DEF_LEN*2];
+  int buf[FWK_QUEUE_MSG_DEF_LEN];
   fwk_event_t* event = (fwk_event_t*)buf;
   int timeout = FOREVER;
   int len = fwk_task_receiveEvent(event, timeout);
@@ -451,11 +450,10 @@ void* timerClient(void* args)
   return NULL;
 }
 
-int initTimerDemo()
+int initTimerDemo(void)
 {
   int rc = 0;
   fwk_taskID_t tid;
-  extern void * tmr_main_task(void * ptr);
   fwk_taskAttr_t tAttr = {"timerM", NULL, tmr_main_task, NULL, SCHED_FIFO, 50, {0, 20*1024, FWK_QUEUE_MSG_DEF_LEN, 8}, 1, 0, -1};
   rc = fwk_createTask(&tAttr, &tid);
   printf("timer_main_task tid: %"fwk_addr_f"\n", (fwk_addr_t)tid);
@@ -470,10 +468,10 @@ int initTimerDemo()
   uint32_t delay = NTERVAL_PER_SECOND/10;//10 times in 1 second
   uint32_t periodic_delay = NTERVAL_PER_SECOND/10;//10 times in 1 second
   //add timer node with name TimerA & TimerB
-  rc = tmr_add_timerNode("TimerA",delay,periodic_delay,NULL, (void *)a_repeating_timer, &gTimeATick);
+  rc = tmr_add_timerNode("TimerA",delay,periodic_delay,NULL, a_repeating_timer, &gTimeATick);
   delay = 100 * SYS_TIME_TICKS_IN_A_SEC;// 1 times in 1 second
   periodic_delay = 100 * SYS_TIME_TICKS_IN_A_SEC; // 1 times in 1 second 
-  rc = tmr_add_timerNode("TimerB",delay,periodic_delay, tid, (void *)b_timer, &gTimeBTick);
+  rc = tmr_add_timerNode("TimerB",delay,periodic_delay, tid, b_timer, &gTimeBTick);
 
   rc = tmr_start_timer("TimerA");
   rc = tmr_start_timer("TimerB");
@@ -483,7 +481,7 @@ int initTimerDemo()
 int cmdMain(int argc, char** argv)
 {
   char buf[FWK_QUEUE_MSG_DEF_LEN];
-  char* name = NULL;
+  const char* name = NULL;
   fwk_taskID_t tid = 0;
   int timeout = 0;
   int rc = 0;
@@ -491,7 +489,7 @@ int cmdMain(int argc, char** argv)
 
   if (argc < 1) return -1;
   char* cmd = argv[0];
-  char* cmdList[] = {
+  const char* cmdList[] = {
     "quit: quit this tool",
     "echo: display input in turn",
     "help: show this info list",
@@ -533,7 +531,7 @@ int cmdMain(int argc, char** argv)
     printf("\n");
 
   } else if (!strcmp(cmd, "help")) {
-    for (i = 0; i < sizeof(cmdList)/sizeof(cmdList[0]); ++i) {
+    for (i = 0; (size_t)i < sizeof(cmdList)/sizeof(cmdList[0]); ++i) {
       printf("%s\n", cmdList[i]);
     }
 
@@ -738,7 +736,7 @@ int cmdMain(int argc, char** argv)
   return rc;
 }
 
-int testCase()
+int testCase(void)
 {
   int rc = 0;
   fwk_taskID_t tid;
@@ -750,7 +748,7 @@ int testCase()
   return rc;
 }
 
-int main(int argc, char** argv)
+int main(__attribute__((unused)) int argc, __attribute__((unused)) char** argv)
 {
 #define ARGS_CNT        8             /* Max argv entries */
 #define ARGS_BUFFER  256         /* bytes total for arguments */
