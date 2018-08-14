@@ -123,7 +123,7 @@ static void fwk_memmgmt_init( void )
 	uint32_t ui4MemTotalSize = FWK_MEMMGMT_TOTAL_MEM_SIZE;
 	fwk_memmgmtLink_t *pFirstFreeMem;
 	
-	fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK,FWK_BASICTRACE_LEVEL_INF,"F:%s memory init start.\n",__FUNCTION__);
+	fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK,FWK_BASICTRACE_LEVEL_INF,"F:%s memory init start.\n",__func__);
 
 	i4res = sem_init(&gfwkmemmgmtSemId, 0, 1);
 	if (i4res != 0)
@@ -175,7 +175,7 @@ void *fwk_memmgmt_malloc( uint32_t u4Size )
 	fwk_memmgmtLink_t *pMem, *pPreviousMem, *pNewMem;
 	void *pvReturn = NULL;
 
-	fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK,FWK_BASICTRACE_LEVEL_INF,"F:%s size:0x%x.\n",__FUNCTION__,u4Size);
+	fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK,FWK_BASICTRACE_LEVEL_INF,"F:%s size:0x%x.\n",__func__,u4Size);
 
 	if( gpfwkmemmgmtEnd == NULL )
 	{
@@ -197,7 +197,7 @@ void *fwk_memmgmt_malloc( uint32_t u4Size )
 					u4Size += ( FWK_MEMMGMT_MIN_MEM_SIZE - ( u4Size & FWK_MEMMGMT_MIN_MEM_SIZE_MASK ) );
 					if( ( u4Size & FWK_MEMMGMT_MIN_MEM_SIZE_MASK ) != 0 )
 					{
-						fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK,FWK_BASICTRACE_LEVEL_ERR,"F:%s size(0x%x) error.\n",__FUNCTION__,u4Size);
+						fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK,FWK_BASICTRACE_LEVEL_ERR,"F:%s size(0x%x) error.\n",__func__,u4Size);
 						return NULL;
 					}	
 				}
@@ -259,12 +259,12 @@ void fwk_memmgmt_free( void *pMemaddr )
 
 		if( ( pMem->ui4MemSize & gu4fwkmemmgmtAllocatedBit ) == 0 )
 		{
-			fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK,FWK_BASICTRACE_LEVEL_ERR,"F:%s memory has free:0x%x.\n",__FUNCTION__,pMemaddr);
+			fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK,FWK_BASICTRACE_LEVEL_ERR,"F:%s memory has free:0x%x.\n",__func__,pMemaddr);
 			return;
 		}
 		if( pMem->pNextFreeMem != NULL )
 		{
-			fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK,FWK_BASICTRACE_LEVEL_ERR,"F:%s pNextFreeMem is NULL:0x%x.\n",__FUNCTION__,pMemaddr);
+			fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK,FWK_BASICTRACE_LEVEL_ERR,"F:%s pNextFreeMem is NULL:0x%x.\n",__func__,pMemaddr);
 			return;
 		}
 
@@ -283,7 +283,7 @@ void fwk_memmgmt_free( void *pMemaddr )
 			return;
 		}
 	}
-	fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK,FWK_BASICTRACE_LEVEL_ERR,"F:%s pMemaddr is NULL.\n",__FUNCTION__);
+	fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK,FWK_BASICTRACE_LEVEL_ERR,"F:%s pMemaddr is NULL.\n",__func__);
 	return;
 }
 
@@ -291,7 +291,7 @@ void* fwk_memmgmt_set(void *pDest, int32_t i4Value, uint32_t u4Size)
 {
 	if(pDest == NULL || u4Size <= 0) 
 	{
-		fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK,FWK_BASICTRACE_LEVEL_ERR,"F:%s param is error.\n",__FUNCTION__);
+		fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK,FWK_BASICTRACE_LEVEL_ERR,"F:%s param is error.\n",__func__);
 		return NULL;
 	}
     char* pDestStart = (char*)pDest;
@@ -304,7 +304,7 @@ void *fwk_memmgmt_cpy(void *pDest, const void *pSrc, uint32_t u4Size)
 {  
 	if(pDest == NULL || pSrc == NULL || u4Size <= 0) 
 	{
-		fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK,FWK_BASICTRACE_LEVEL_ERR,"F:%s param is error.\n",__FUNCTION__);
+		fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK,FWK_BASICTRACE_LEVEL_ERR,"F:%s param is error.\n",__func__);
 		return NULL;
 	}
 	char *pSrcTemp = (char *)pSrc;
