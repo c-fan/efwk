@@ -48,7 +48,7 @@ struct cli_user_cmd gCliUserCmd[] = {
 void* cliDemo(void* args)
 {
     (void)(args);
-    efwk_cli_start();
+    efwk_cli_start(1024*1024);
     return NULL;
 }
 void* mainLoop(void* args)
