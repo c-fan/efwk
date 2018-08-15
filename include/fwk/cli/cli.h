@@ -63,7 +63,7 @@ int efwk_cli_register_command(struct cli_def * cli, const char *command,
 /*
   * Start cli as an independent task
   */
-int efwk_cli_start(void);
+int efwk_cli_start(size_t stackSize);
 
 struct cli_user_cmd {
     const char* name;
