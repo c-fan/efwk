@@ -154,10 +154,10 @@ void *efwk_cli_thread_func(__attribute__((unused)) void *arg)
 }
 
 
-int efwk_cli_start(void)
+int efwk_cli_start(size_t stackSize)
 {
     fwk_taskID_t tid;
-    fwk_taskRes_t resource = {1024*1024, 0, 0, 0};
+    fwk_taskRes_t resource = {stackSize, 0, 0, 0}; //default stackSize 1024*1024
     int rc = fwk_createDisposableTask("cliSvr", &tid, efwk_cli_thread_func, NULL, 1, resource, 1);
     printf("%s to create CLI Server, tid: %"fwk_addr_f"\n", rc ? "Fail" : "Success", (fwk_addr_t)tid);
     return rc;
