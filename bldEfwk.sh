@@ -1,10 +1,12 @@
-#!/bin/sh
+#!/bin/bash
 
-ARCH=arm PLT=DMC make clean
-ARCH=arm PLT=DMC make
+#declare -a PLTS=(DMC APB HOST)
+declare -a PLTS=(APB HOST)
+declare -A ARCHS=([DMC]=arm [APB]=arm64 [HOST]=x86_64)
 
-ARCH=arm64 PLT=APB make clean
-ARCH=arm64 PLT=APB make
+failed_plt=
+for PLT in "${PLTS[@]}"; do
+    PLT=$PLT ARCH=${ARCHS[$PLT]} make clean all || failed_plt=$failed_plt,$PLT
+done
+[ -z "$failed_plt" ] && echo All Succeeded. || echo Failed PLT:`echo $failed_plt|cut -c2-`.
 
-ARCH=x86_64 PLT=HOST make clean
-ARCH=x86_64 PLT=HOST make
