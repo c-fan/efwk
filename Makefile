@@ -11,20 +11,6 @@ OBJDUMP  = $(CROSS_COMPILE)objdump
 
 SHELL = /bin/bash
 
-SUPPORTED_ARCHS:=x86_64 arm64 arm
-ifneq (,$(filter $(ARCH),$(SUPPORTED_ARCHS)))
-    include $(SELF_DIR)archdep-$(ARCH).mk
-else
-    $(error Unsupported ARCH '$(ARCH)' provided, SUPPORTED_ARCHS: $(SUPPORTED_ARCHS).)
-endif
-
-SUPPORTED_PLTS:=DMC MFH APB HOST
-ifneq (,$(filter $(PLT),$(SUPPORTED_PLTS)))
-    include $(SELF_DIR)pltdep-$(PLT).mk
-else
-    $(error Unsupported PLT '$(PLT)' provided, SUPPORTED_PLTS: $(SUPPORTED_PLTS).)
-endif
-
 AllDirs := $(shell find src -type d)
 Sources := $(foreach n,$(AllDirs) , $(wildcard $(n)/*.c))
 StaticObjDir := obj-$(ARCH)-static
@@ -45,7 +31,7 @@ EXTRA_WARNINGS := -Wextra -pedantic -Wpointer-arith -Wwrite-strings \
 
 #            -Wshadow -Wconversion -Wmissing-prototypes -Wmissing-declarations \
 
-CFLAGS += -g -O0 -Wall $(EXTRA_WARNINGS) -MMD -MP -D_GNU_SOURCE $(INCLUDE) -D$(PLT)
+CFLAGS += -g -O0 -Wall $(EXTRA_WARNINGS) -MMD -MP -D_GNU_SOURCE $(INCLUDE) -D$(ARCH)
 LDFLAGS = -L$(LibDir) -lefwks -lpthread -lcrypt
 
 UtSrc:=ut/efwk-demo.c
