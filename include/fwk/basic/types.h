@@ -34,17 +34,8 @@ typedef int bool_t;
 #define TRUE ((bool_t) 1)
 #define FALSE ((bool_t) 0) 
 
-typedef unsigned long ubase_t;
+typedef unsigned long fwk_addr_t; //identify by __WORDSIZE
 
 #define FOREVER -1
-#if defined(arm64) || defined(x86_64)
-typedef uint64_t fwk_addr_t;
-#define fwk_addr_f PRIu64
-#elif defined(arm) || defined(x86)
-typedef uint32_t fwk_addr_t;
-#define fwk_addr_f PRIu32
-#else
-#error "Unsupported architecture..."
-#endif
 
 #endif /* FWK_BASIC_TYPES_H */
