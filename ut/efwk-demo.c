@@ -62,7 +62,7 @@ int initCliSvr(void)
   fwk_taskID_t tid;
   fwk_taskAttr_t tAttr = {"cliSvr", cliDemo, mainLoop, NULL, SCHED_FIFO, 50, {0, 20*1024, 0, 0}, 1, 0, -1};
   int rc = fwk_createTask(&tAttr, &tid);
-  printf("cliServer tid: %"fwk_addr_f"\n", (fwk_addr_t)tid);
+  printf("cliServer tid: %p\n", tid);
   return rc;
 }
 
@@ -216,8 +216,8 @@ void* evtA(__attribute__((unused)) void* args)
 
   for (i = 0; i < randomN(3); ++i) {
     rc = fwk_task_receiveEvent(event, timeout);
-    printf("event[%s, %i, 0x%x, %i, %"fwk_addr_f"] received by %s with rc %i, timeout %i\n",
-      (char*)event->data, event->eventType, event->datalen, event->sourceSys, (fwk_addr_t)event->sourceTask, __func__, rc, timeout);
+    printf("event[%s, %i, 0x%x, %i, %p] received by %s with rc %i, timeout %i\n",
+      (char*)event->data, event->eventType, event->datalen, event->sourceSys, event->sourceTask, __func__, rc, timeout);
     //if (!rc || event.data) fwk_memmgmt_free(event.data);
     //event.data = NULL;
     sleep(randomN(1));
@@ -252,9 +252,8 @@ void* evtB(__attribute__((unused)) void* args)
 
   for (i = 0; i < randomN(4); ++i) {
     rc = fwk_task_receiveEvent(event, timeout);
-    printf("event[%s, %i, 0x%x, %i, %"fwk_addr_f"] received by %s with rc %i, timeout %i\n",
-      (char*)event->data, event->eventType, event->datalen, event->sourceSys, (fwk_addr_t)event->sourceTask, __func__, rc, timeout);
-      //(char*)event.data, event.eventType, event.datalen, event.sourceSys, (fwk_addr_t)event.sourceTask, __func__, rc, timeout);
+    printf("event[%s, %i, 0x%x, %i, %p] received by %s with rc %i, timeout %i\n",
+      (char*)event->data, event->eventType, event->datalen, event->sourceSys, event->sourceTask, __func__, rc, timeout);
     //if (!rc || event.data) fwk_memmgmt_free(event.data);
     //event.data = NULL;
     sleep(randomN(2));
@@ -443,8 +442,8 @@ void* timerClient(__attribute__((unused)) void* args)
   fwk_event_t* event = (fwk_event_t*)buf;
   int timeout = FOREVER;
   int len = fwk_task_receiveEvent(event, timeout);
-  printf("event[%s, %i, 0x%x, %i, %"fwk_addr_f"] received by %s with len %i, timeout %i\n",
-    (char*)event->data, event->eventType, event->datalen, event->sourceSys, (fwk_addr_t)event->sourceTask, __func__, len, timeout);
+  printf("event[%s, %i, 0x%x, %i, %p] received by %s with len %i, timeout %i\n",
+    (char*)event->data, event->eventType, event->datalen, event->sourceSys, event->sourceTask, __func__, len, timeout);
   gTimeBTick += 1;
   if (len < 0) sleep(5);
   return NULL;
@@ -456,11 +455,11 @@ int initTimerDemo(void)
   fwk_taskID_t tid;
   fwk_taskAttr_t tAttr = {"timerM", NULL, tmr_main_task, NULL, SCHED_FIFO, 50, {0, 20*1024, FWK_QUEUE_MSG_DEF_LEN, 8}, 1, 0, -1};
   rc = fwk_createTask(&tAttr, &tid);
-  printf("timer_main_task tid: %"fwk_addr_f"\n", (fwk_addr_t)tid);
+  printf("timer_main_task tid: %p\n", tid);
 
   fwk_taskAttr_t tcAttr = {"tmClient", NULL, timerClient, NULL, SCHED_FIFO, 50, {0, 20*1024, FWK_QUEUE_MSG_DEF_LEN, 8}, 1, 0, -1};
   rc = fwk_createTask(&tcAttr, &tid);
-  printf("timer_client tid: %"fwk_addr_f"\n", (fwk_addr_t)tid);
+  printf("timer_client tid: %p\n", tid);
 
   tmr_timer_init();
   //rc = stw_timer_create(STW_NUMBER_BUCKETS,STW_RESOLUTION, "Demo Timer Wheel");
@@ -543,7 +542,7 @@ int cmdMain(int argc, char** argv)
     bool_t independent = 1;
     rc = fwk_createPreemptiveTask("timer", &tid, timer, NULL, priority, policy, resource, independent);
     printf("pid:%ld\n", fwk_rawTid(tid));
-    printf("tid: %"fwk_addr_f"\n", (fwk_addr_t)tid);
+    printf("tid: %p\n", tid);
 
   } else if (!strcmp(cmd, "taskDelete")) {
     if (argc > 1) {
@@ -554,7 +553,7 @@ int cmdMain(int argc, char** argv)
     tid = fwk_taskId(name);
     printf("pid:%ld\n", fwk_rawTid(tid));
     rc = fwk_deleteTask(tid);
-    printf("delete %s tid: %"fwk_addr_f"\n", name, (fwk_addr_t)tid);
+    printf("delete %s tid: %p\n", name, tid);
 
   } else if (!strcmp(cmd, "taskPause")) {
     if (argc > 1) {
@@ -565,7 +564,7 @@ int cmdMain(int argc, char** argv)
     tid = fwk_taskId(name);
     rc = fwk_suspendTask(tid);
     printf("pid:%ld\n", fwk_rawTid(tid));
-    printf("tid: %"fwk_addr_f"\n", (fwk_addr_t)tid);
+    printf("tid: %p\n", tid);
 
   } else if (!strcmp(cmd, "taskResume")) {
     if (argc > 1) {
@@ -576,7 +575,7 @@ int cmdMain(int argc, char** argv)
     tid = fwk_taskId(name);
     rc = fwk_resumeTask(tid);
     printf("pid:%ld\n", fwk_rawTid(tid));
-    printf("tid: %"fwk_addr_f"\n", (fwk_addr_t)tid);
+    printf("tid: %p\n", tid);
 
   } else if (!strcmp(cmd, "taskName")) {
     if (argc > 1) {
@@ -586,7 +585,7 @@ int cmdMain(int argc, char** argv)
     }
     tid = fwk_taskId(name);
     const char* tName = fwk_taskName(tid);
-    printf("tid: %"fwk_addr_f", pid:%ld, taskName:%s\n", (fwk_addr_t)tid, fwk_rawTid(tid), tName);
+    printf("tid: %p, pid:%ld, taskName:%s\n", tid, fwk_rawTid(tid), tName);
 
   } else if (!strcmp(cmd, "taskShow")) {
     fwk_showTask(NULL);
@@ -594,11 +593,11 @@ int cmdMain(int argc, char** argv)
   } else if (!strcmp(cmd, "mutexDemo")) {
     fwk_taskAttr_t MAttr = {"master", NULL, master, NULL, SCHED_FIFO, 80, {0, 20*1024, 0, 10}, 1, 0, -1};
     rc = fwk_createTask(&MAttr, &tid);
-    printf("master tid: %"fwk_addr_f"\n", (fwk_addr_t)tid);
+    printf("master tid: %p\n", tid);
 
     fwk_taskAttr_t SAttr = {"slave", NULL, slave, NULL, SCHED_FIFO, 20, {0, 20*1024, 0, 10}, 1, 0, -1};
     rc = fwk_createTask(&SAttr, &tid);
-    printf("slave tid: %"fwk_addr_f"\n", (fwk_addr_t)tid);
+    printf("slave tid: %p\n", tid);
 
   } else if (!strcmp(cmd, "mutexShow")) {
     fwk_showMutex(NULL);
@@ -613,11 +612,11 @@ int cmdMain(int argc, char** argv)
   } else if(!strcmp(cmd, "semaDemo")) {
     fwk_taskAttr_t CAttr = {"consumer", NULL, consumer, NULL, SCHED_FIFO, 50, {0, 20*1024, 0, 10}, 1, 0, -1};
     rc = fwk_createTask(&CAttr, &tid);
-    printf("consumer tid: %"fwk_addr_f"\n", (fwk_addr_t)tid);
+    printf("consumer tid: %p\n", tid);
 
     fwk_taskAttr_t PAttr = {"producer", NULL, producer, NULL, SCHED_FIFO, 10, {0, 20*1024, 0, 10}, 1, 0, -1};
     rc = fwk_createTask(&PAttr, &tid);
-    printf("producer tid: %"fwk_addr_f"\n", (fwk_addr_t)tid);
+    printf("producer tid: %p\n", tid);
 
   } else if (!strcmp(cmd, "semaShow")) {
     fwk_showSemaphore(NULL);
@@ -625,11 +624,11 @@ int cmdMain(int argc, char** argv)
   } else if (!strcmp(cmd, "queueDemo")) {
     fwk_taskAttr_t AAttr = {"msgA", NULL, msgA, NULL, SCHED_FIFO, 80, {0, 20*1024, 0, 10}, 1, 0, -1};
     rc = fwk_createTask(&AAttr, &tid);
-    printf("msgA tid: %"fwk_addr_f"\n", (fwk_addr_t)tid);
+    printf("msgA tid: %p\n", tid);
 
     fwk_taskAttr_t BAttr = {"msgB", NULL, msgB, NULL, SCHED_FIFO, 20, {0, 20*1024, 0, 10}, 1, 0, -1};
     rc = fwk_createTask(&BAttr, &tid);
-    printf("msgB tid: %"fwk_addr_f"\n", (fwk_addr_t)tid);
+    printf("msgB tid: %p\n", tid);
 
   } else if (!strcmp(cmd, "msgSend")) {
     if (argc > 1) {
@@ -652,12 +651,12 @@ int cmdMain(int argc, char** argv)
     fwk_taskAttr_t AAttr = {"evtA", NULL, evtA, NULL, SCHED_FIFO, 50, {0, 20*1024, FWK_QUEUE_MSG_DEF_LEN, 8}, 1, 0, -1};
     rc = fwk_createTask(&AAttr, &tid);
     //rc = fwk_task_createEvent(tid);
-    printf("evtA tid: %"fwk_addr_f"\n", (fwk_addr_t)tid);
+    printf("evtA tid: %p\n", tid);
 
     fwk_taskAttr_t BAttr = {"evtB", NULL, evtB, NULL, SCHED_FIFO, 10, {0, 20*1024, FWK_QUEUE_MSG_DEF_LEN, 8}, 1, 0, -1};
     rc = fwk_createTask(&BAttr, &tid);
     //rc = fwk_task_createEvent(tid);
-    printf("evtB tid: %"fwk_addr_f"\n", (fwk_addr_t)tid);
+    printf("evtB tid: %p\n", tid);
 
   } else if(!strcmp(cmd, "eventSend")) {
     if (argc > 1) {
@@ -672,12 +671,12 @@ int cmdMain(int argc, char** argv)
   } else if(!strcmp(cmd, "evtDemo")) {
     fwk_taskAttr_t AAttr = {"evt1", NULL, evt1, NULL, SCHED_FIFO, 50, {0, 0, 0, 0}, 1, 0, -1};
     rc = fwk_createTask(&AAttr, &tid);
-    printf("evt1 tid: %"fwk_addr_f", rc %i\n", (fwk_addr_t)tid, rc);
+    printf("evt1 tid: %p, rc %i\n", tid, rc);
     rc = fwk_createEvent(20, 8, NULL, "evt1");
 
     fwk_taskAttr_t BAttr = {"evt2", NULL, evt2, NULL, SCHED_FIFO, 10, {0, 0, 0, 0}, 1, 0, -1};
     rc = fwk_createTask(&BAttr, &tid);
-    printf("evt2 tid: %"fwk_addr_f", rc %i\n", (fwk_addr_t)tid, rc);
+    printf("evt2 tid: %p, rc %i\n", tid, rc);
     rc = fwk_createEvent(20, 8, NULL, "evt2");
 
   } else if(!strcmp(cmd, "evtSend")) {
