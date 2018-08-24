@@ -31,7 +31,7 @@ EXTRA_WARNINGS := -Wextra -pedantic -Wpointer-arith -Wwrite-strings \
 
 #            -Wshadow -Wconversion -Wmissing-prototypes -Wmissing-declarations \
 
-CFLAGS += -g -O0 -Wall $(EXTRA_WARNINGS) -MMD -MP -D_GNU_SOURCE $(INCLUDE) -D$(ARCH)
+CFLAGS += -g -O0 -Wall $(EXTRA_WARNINGS) -MMD -MP -D_GNU_SOURCE $(INCLUDE)
 LDFLAGS = -L$(LibDir) -lefwks -lpthread -lcrypt
 
 UtSrc:=ut/efwk-demo.c
