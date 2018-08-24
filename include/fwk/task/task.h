@@ -53,7 +53,7 @@ typedef struct
 	/* stack size */
 	size_t stackSize;
 	/* mem pool size */
-	ubase_t memPoolSize;
+	fwk_addr_t memPoolSize;
 	/* default event queue */
 	uint16_t queueSize; /* max size for each event in the queue */
 	uint8_t queueDepth; /* max number of events */
