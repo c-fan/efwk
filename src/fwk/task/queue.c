@@ -141,7 +141,7 @@ int fwk_insertToVarQ_imp(fwk_queueList_t* pQid, const void * data, uint16_t size
 	uint8_t* msgQTail = (uint8_t*)(pQid->msgQ) + pQid->attr.maxBufSize;
 	pNode->msgBuf = (uint8_t*)pHead->msgBuf - headLen - size;
 	if ((uint8_t*)pTail->msgBuf + pTail->msgLen > msgQTail) { //old tail is loop
-		int msgLoopLen = pTail->msgLen - ((ubase_t)msgQTail - (ubase_t)pTail->msgBuf);
+		int msgLoopLen = pTail->msgLen - ((fwk_addr_t)msgQTail - (fwk_addr_t)pTail->msgBuf);
 		if ((uint8_t *)pNode->msgBuf < (uint8_t *)pQid->msgQ + msgLoopLen) return FWK_E_QUEUE_FULL;
 		if (headLen) fwk_memmgmt_cpy(pNode->msgBuf, head, headLen);
 		fwk_memmgmt_cpy((uint8_t*)pNode->msgBuf + headLen, data, size);
@@ -176,13 +176,13 @@ int fwk_sendToVarQ_imp(fwk_queueList_t* pQid, const void * data, uint16_t size, 
 	uint8_t* msgQTail = (uint8_t*)(pQid->msgQ) + pQid->attr.maxBufSize;
 	pNode->msgBuf = (uint8_t*)pTail->msgBuf + pTail->msgLen;
 	if ((uint8_t*)pNode->msgBuf > msgQTail) { //old tail is loop
-		int msgLoopLen = pTail->msgLen - ((ubase_t)msgQTail - (ubase_t)pTail->msgBuf);
+		int msgLoopLen = pTail->msgLen - ((fwk_addr_t)msgQTail - (fwk_addr_t)pTail->msgBuf);
 		pNode->msgBuf = (uint8_t*)pQid->msgQ + msgLoopLen;
 		if (((uint8_t*)pNode->msgBuf + headLen + size) > (uint8_t*)pHead->msgBuf) return FWK_E_QUEUE_FULL;
 		if (headLen) fwk_memmgmt_cpy(pNode->msgBuf, head, headLen);
 		fwk_memmgmt_cpy((uint8_t*)pNode->msgBuf + headLen, data, size);
 	} else if ((uint8_t*)pNode->msgBuf + headLen + size > msgQTail) { //new tail is loop
-		int msgLoopLen = headLen + size - ((ubase_t)msgQTail - (ubase_t)pNode->msgBuf);
+		int msgLoopLen = headLen + size - ((fwk_addr_t)msgQTail - (fwk_addr_t)pNode->msgBuf);
 		if ((uint8_t*)pQid->msgQ + msgLoopLen > (uint8_t*)pHead->msgBuf) return FWK_E_QUEUE_FULL;
 		if ((uint8_t*)pNode->msgBuf + headLen > msgQTail) {
 			int tailLen = headLen + size - msgLoopLen;
@@ -280,7 +280,7 @@ int fwk_recvFromVarQ_imp(fwk_queueList_t* pQid, void * buffer, uint16_t bufsize)
 
 	if (bufsize < pNode->msgLen) return FWK_E_QUEUE_BUFOVERFLOW;
 	if ((uint8_t*)pNode->msgBuf + pNode->msgLen > msgQTail) { //loop
-		int msgLoopLen = pNode->msgLen - ((ubase_t)msgQTail - (ubase_t)pNode->msgBuf);
+		int msgLoopLen = pNode->msgLen - ((fwk_addr_t)msgQTail - (fwk_addr_t)pNode->msgBuf);
 		fwk_memmgmt_cpy(buffer, pNode->msgBuf, pNode->msgLen - msgLoopLen);
 		fwk_memmgmt_cpy((uint8_t*)buffer + pNode->msgLen - msgLoopLen, pQid->msgQ, msgLoopLen);
 	} else { //normal
@@ -374,12 +374,12 @@ void fwk_showQueue(fwk_queueID_t qID)
 	fwk_queueList_t* pQid = (fwk_queueList_t*)qID;
 	if (pQid) {
 		//fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK, FWK_BASICTRACE_LEVEL_ERR,
-		printf("attr[name=%s, depth=%i, size=%i, maxBufSize=%i], mid[%"fwk_addr_f"], msg[head=%i, tail=%i]:\n",
+		printf("attr[name=%s, depth=%i, size=%i, maxBufSize=%i], mid[%p], msg[head=%i, tail=%i]:\n",
 			pQid->attr.name,
 			pQid->attr.depth,
 			pQid->attr.size,
 			pQid->attr.maxBufSize,
-			(fwk_addr_t)pQid->mid,
+			pQid->mid,
 			pQid->head,
 			pQid->tail
 			);
@@ -399,7 +399,7 @@ void fwk_showQueue(fwk_queueID_t qID)
 			for (k = pQid->head; k < end; ++k) {
 				idx = k % pQid->attr.depth;
 				fwk_msgNode_t* pNode = pQid->varQ + idx;
-				printf("\t%i: len=%i, addr=%"fwk_addr_f", msg=%s\n", idx, pNode->msgLen, (fwk_addr_t)pNode->msgBuf, (char*)pNode->msgBuf);
+				printf("\t%i: len=%i, addr=%p, msg=%s\n", idx, pNode->msgLen, pNode->msgBuf, (char*)pNode->msgBuf);
 				if ((uint8_t*)pNode->msgBuf + pNode->msgLen > msgQTail) {
 					printf("\t--: %s\n", (char*)pQid->msgQ);
 				}

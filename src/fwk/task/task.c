@@ -402,12 +402,11 @@ void fwk_showTask(fwk_taskID_t tid)
 	if (pTask) {
 		//fwk_basictrace_print(FWK_BASICTRACE_MODULE_FWK, FWK_BASICTRACE_LEVEL_ERR,
 		printf(
-			"task name=%s, func=%"fwk_addr_f", args=%"fwk_addr_f", policy=%i, priority=%i, "
+			"task name=%s, args=%p, policy=%i, priority=%i, "
 			"resource[stackSize=%i, memPoolSize=%ld, queueSize=%i, queueDepth=%i], "
-			"independent=%i, taskType=%i, loopTimes=%i, initFunc=%"fwk_addr_f"; tid=%"fwk_addr_f", taskPause=%i\n",
+			"independent=%i, taskType=%i, loopTimes=%i, taskPause=%i\n",
 			pTask->attr.name,
-			(fwk_addr_t)pTask->attr.func,
-			(fwk_addr_t)pTask->attr.args,
+			pTask->attr.args,
 			pTask->attr.policy,
 			pTask->attr.priority,
 			(int)pTask->attr.resource.stackSize,
@@ -417,9 +416,13 @@ void fwk_showTask(fwk_taskID_t tid)
 			pTask->attr.independent,
 			pTask->attr.taskType,
 			pTask->attr.loopTimes,
-			(fwk_addr_t)pTask->attr.initFunc,
-			(fwk_addr_t)pTask->tid,
 			pTask->taskPause);
+#if 0 //Display function pointer
+		printf("func=%p, initFunc=%p; tid=%lx,\n",
+			pTask->attr.func,
+			pTask->attr.initFunc,
+			(fwk_addr_t)pTask->tid);
+#endif
 		if (pTask->mid) fwk_showMutex(pTask->mid);
 		if (pTask->cid) fwk_showCond(pTask->cid);
 		if (pTask->qid) fwk_showQueue(pTask->qid);

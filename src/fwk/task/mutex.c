@@ -239,15 +239,15 @@ void fwk_showMutex(void* mid)
 		printf("mutex state:[lock=%i, count=%i, owner=%i, kind=%i, nusers=%i, spins=%i",
 			p->mutex.__data.__lock, p->mutex.__data.__count, p->mutex.__data.__owner,
 			p->mutex.__data.__kind, p->mutex.__data.__nusers, p->mutex.__data.__spins);
-#if defined(arm64) || defined(x86_64)
+#if __WORDSIZE == 64
 		__pthread_list_t* next = &(p->mutex.__data.__list);
-#elif defined(arm) || defined(x86)
+#elif __WORDSIZE == 32
 		__pthread_slist_t* next = &(p->mutex.__data.__list);
 #else
 #error "Unsupported architecture..."
 #endif
 		while (next) {
-			printf(", ->%"fwk_addr_f" ", (fwk_addr_t)next);
+			printf(", ->%p", (void*)next);
 			next = next->__next;
 		}
 		printf(", size[");
@@ -403,10 +403,10 @@ void fwk_showCond(void* cid)
 			p->attr.pshared,
 			p->attr.clock
 			);
-		printf("cond state: [lock=%i, futex=%i, SN(total %lld, wakeup %lld, woken %lld), mutex %"fwk_addr_f", nwaiters=%i, bc-SN %i",
+		printf("cond state: [lock=%i, futex=%i, SN(total %lld, wakeup %lld, woken %lld), mutex %p, nwaiters=%i, bc-SN %i",
 			p->cond.__data.__lock, p->cond.__data.__futex,
 			p->cond.__data.__total_seq, p->cond.__data.__wakeup_seq, p->cond.__data.__woken_seq,
-			(fwk_addr_t)(p->cond.__data.__mutex), p->cond.__data.__nwaiters, p->cond.__data.__broadcast_seq);
+			p->cond.__data.__mutex, p->cond.__data.__nwaiters, p->cond.__data.__broadcast_seq);
 		printf(", size[");
 		for (i = 0; i < __SIZEOF_PTHREAD_COND_T; ++i) {
 			if (p->cond.__size[i]) printf(", %i=%i", i, p->cond.__size[i]);
