@@ -239,12 +239,12 @@ void fwk_showMutex(void* mid)
 		printf("mutex state:[lock=%i, count=%i, owner=%i, kind=%i, nusers=%i, spins=%i",
 			p->mutex.__data.__lock, p->mutex.__data.__count, p->mutex.__data.__owner,
 			p->mutex.__data.__kind, p->mutex.__data.__nusers, p->mutex.__data.__spins);
-#if defined(MFH) || defined(APB) || defined(HOST)
+#if defined(arm64) || defined(x86_64)
 		__pthread_list_t* next = &(p->mutex.__data.__list);
-#elif defined(DMC)
+#elif defined(arm) || defined(x86)
 		__pthread_slist_t* next = &(p->mutex.__data.__list);
 #else
-#error "Unsupported operate system..."
+#error "Unsupported architecture..."
 #endif
 		while (next) {
 			printf(", ->%"fwk_addr_f" ", (fwk_addr_t)next);
@@ -561,4 +561,3 @@ void fwk_showSemaphore(void* sid)
 		}
 	}
 }
-
