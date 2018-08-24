@@ -37,14 +37,14 @@ typedef int bool_t;
 typedef unsigned long ubase_t;
 
 #define FOREVER -1
-#if defined(MFH) || defined(APB) || defined(HOST)
+#if defined(arm64) || defined(x86_64)
 typedef uint64_t fwk_addr_t;
 #define fwk_addr_f PRIu64
-#elif defined(DMC)
+#elif defined(arm) || defined(x86)
 typedef uint32_t fwk_addr_t;
 #define fwk_addr_f PRIu32
 #else
-#error "Unsupported running time..."
+#error "Unsupported architecture..."
 #endif
 
 #endif /* FWK_BASIC_TYPES_H */
