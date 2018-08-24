@@ -1,8 +1,11 @@
 #!/bin/sh
+#This shell is a demo for compiling script.
+#It need only to assign ARCH environment to identify 32 ot 64 bit OS,
+#and CROSS_COMPLIE path and name, which can be specified in profile.
+
 if [ "-h" = "$1" ]; then
 	echo "Usage: $0 <architecture>"
 	echo "architecture: arm|arm64|x86_64"
-	echo "rebuild: clean all and rebuild."
 	exit
 fi
 export ARCH=$1
