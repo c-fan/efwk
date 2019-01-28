@@ -2,7 +2,7 @@
  * stw_mgmt.c -- Single Timer Wheel Timer management
  *------------------------------------------------------------------
  */
- 
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -13,7 +13,7 @@
 #include <time.h>
 #include <sys/times.h>
 #else
-#include <signal.h> 
+#include <signal.h>
 #include <sys/time.h>
 #endif
 #include <sys/types.h>
@@ -91,9 +91,6 @@ void tmr_init_mutex(void)
     pthread_mutexattr_t mutex_attr;
 
     pthread_mutexattr_init(&mutex_attr);
-    //PTHREAD_MUTEX_RECURSIVE_NP ----PTHREAD_PROCESS_PRIVATE
-    pthread_mutexattr_settype((pthread_mutexattr_t *)(&mutex_attr),
-                              (int)PTHREAD_MUTEX_RECURSIVE_NP);
     error = pthread_mutex_init(&tmr_mutex,&mutex_attr);
     if (error) printf("pthread_mutex_init ERROR\n");
     pthread_mutexattr_destroy(&mutex_attr);
@@ -117,7 +114,7 @@ void tmr_destroy_mutex(void)
     int error;
 
     error = pthread_mutex_destroy(&tmr_mutex);
-    if (error) printf("tmr_destroy_mutex ERROR\n");    
+    if (error) printf("tmr_destroy_mutex ERROR\n");
 }
 
 /*
@@ -136,10 +133,10 @@ void tmr_destroy_mutex(void)
 void tmr_timer_list_init(void){
     //if(tmr_list){
         /* MUTEX */
-        tmr_lock_mutex();        
+        tmr_lock_mutex();
         memset(tmr_list,0,sizeof(stw_tmr_Node_t) * STW_MAX_TIMER_NUM);
         /* MUTEX */
-        tmr_unlock_mutex();        
+        tmr_unlock_mutex();
     //}
 }
 
@@ -156,21 +153,21 @@ void tmr_timer_list_init(void){
  *     Nothing
  *
  */
-void tmr_timer_init(void){ 
+void tmr_timer_init(void){
     /*
-     * create and configure nodal KPA timer   
-     */   
-    stw_timer_create(STW_NUMBER_BUCKETS, STW_RESOLUTION,  "Demo Timer Wheel", &stw_sys_handle); 
+     * create and configure nodal KPA timer
+     */
+    stw_timer_create(STW_NUMBER_BUCKETS, STW_RESOLUTION,  "Demo Timer Wheel", &stw_sys_handle);
 
     tmr_init_mutex();
-    
-    /* MUTEX */
-    tmr_lock_mutex();         
-    memset(tmr_list,0,sizeof(stw_tmr_Node_t) * STW_MAX_TIMER_NUM);  
-    /* MUTEX */
-    tmr_unlock_mutex();  
 
-    stw_init_mutex();    
+    /* MUTEX */
+    tmr_lock_mutex();
+    memset(tmr_list,0,sizeof(stw_tmr_Node_t) * STW_MAX_TIMER_NUM);
+    /* MUTEX */
+    tmr_unlock_mutex();
+
+    stw_init_mutex();
 }
 
 /*
@@ -182,8 +179,8 @@ void tmr_timer_init(void){
  *
  *  Parameters:
  *     Initial the specific timer.
- * 
- *     *tmrList             pointer to the specific timer element 
+ *
+ *     *tmrList             pointer to the specific timer element
  *
  *  Returns:
  *    TRUE
@@ -195,16 +192,16 @@ bool_t tmr_find_free_tmrNode(const char *timer_name,stw_tmr_Node_t **tmrNode){
 
     *tmrNode = NULL;
     if(!timer_name) return FALSE;
-    
+
     for(currTmr = 0; currTmr < STW_MAX_TIMER_NUM; currTmr++){
         if(strcmp(timer_name,tmr_list[currTmr].timer_name) == 0){
             return FALSE;
         }
-    }   
-    
+    }
+
     for(currTmr = 0; currTmr < STW_MAX_TIMER_NUM; currTmr++){
         if(tmr_list[currTmr].used == FALSE){
-            *tmrNode = &(tmr_list[currTmr]);     
+            *tmrNode = &(tmr_list[currTmr]);
             return TRUE;
         }
     }
@@ -219,9 +216,9 @@ bool_t tmr_find_free_tmrNode(const char *timer_name,stw_tmr_Node_t **tmrNode){
  *     Find the specific timer according time name.
  *
  *  Parameters:
- *     *timer_name      pointer to the name of specific timer 
+ *     *timer_name      pointer to the name of specific timer
  *
- *     *tmrNode             pointer to the specific timer element 
+ *     *tmrNode             pointer to the specific timer element
  *
  *  Returns:
  *    TRUE
@@ -233,13 +230,13 @@ bool_t tmr_find_tmrNode(const char *timer_name,stw_tmr_Node_t **tmrNode){
 
     *tmrNode = NULL;
     if(!timer_name) return FALSE;
-    
+
     if(strlen(timer_name) > STW_NAME_LENGTH - 1){
         return FALSE;
     }
-    
+
     for(currTmr = 0; currTmr < STW_MAX_TIMER_NUM; currTmr++){
-        if(tmr_list[currTmr].used == TRUE && 
+        if(tmr_list[currTmr].used == TRUE &&
            strcmp(timer_name,tmr_list[currTmr].timer_name) == 0){
             *tmrNode = &(tmr_list[currTmr]);
             return TRUE;
@@ -257,7 +254,7 @@ bool_t tmr_find_tmrNode(const char *timer_name,stw_tmr_Node_t **tmrNode){
  *
  *  Parameters:
  *
- *     *timer_name      pointer to the name of specific timer 
+ *     *timer_name      pointer to the name of specific timer
  *
  *     delay            initial delay in milliseconds
  *
@@ -281,10 +278,10 @@ bool_t tmr_find_tmrNode(const char *timer_name,stw_tmr_Node_t **tmrNode){
 bool_t tmr_add_timerNode(const char *timer_name, uint32_t delay, uint32_t periodic_delay,
                                 void* tid, stw_call_back_t user_cb, void *parm){
     //char timer_name[STW_NAME_LENGTH] = {0,};
-    stw_tmr_Node_t *tmrNode = NULL;    
+    stw_tmr_Node_t *tmrNode = NULL;
 
     if(!timer_name) return FALSE;
-    
+
     if(strlen(timer_name) > STW_NAME_LENGTH -1)
         return FALSE;
 
@@ -293,10 +290,10 @@ bool_t tmr_add_timerNode(const char *timer_name, uint32_t delay, uint32_t period
     if(tid && !parm) return FALSE;
 
     /* MUTEX */
-    tmr_lock_mutex();         
+    tmr_lock_mutex();
     if(tmr_find_free_tmrNode(timer_name,&tmrNode) == FALSE){
         /* MUTEX */
-        tmr_unlock_mutex();        
+        tmr_unlock_mutex();
         return FALSE;
     }
 
@@ -308,18 +305,18 @@ bool_t tmr_add_timerNode(const char *timer_name, uint32_t delay, uint32_t period
 
     tmrNode->used = TRUE;
     strncpy(tmrNode->timer_name, timer_name, STW_NAME_LENGTH-1);
-    tmrNode->timer_name[STW_NAME_LENGTH-1] = '\0';  
-    
+    tmrNode->timer_name[STW_NAME_LENGTH-1] = '\0';
+
     tmrNode->tmr.delay = delay;
     tmrNode->tmr.periodic_delay = periodic_delay;
-    
+
     tmrNode->tid = tid;
     tmrNode->tmr.func_ptr = user_cb;
     tmrNode->parm = parm;
-    
+
     stw_timer_prepare(&(tmrNode->tmr));
     /* MUTEX */
-    tmr_unlock_mutex();    
+    tmr_unlock_mutex();
 
     return TRUE;
 }
@@ -332,7 +329,7 @@ bool_t tmr_add_timerNode(const char *timer_name, uint32_t delay, uint32_t period
  *     Delete the specific timer node in the time list.
  *
  *  Parameters:
- *     *timer_name      pointer to the name of specific timer 
+ *     *timer_name      pointer to the name of specific timer
  *
  *  Returns:
  *    TRUE
@@ -341,18 +338,18 @@ bool_t tmr_add_timerNode(const char *timer_name, uint32_t delay, uint32_t period
 bool_t tmr_delete_timerNode(const char *timer_name){
     //char timer_name[STW_NAME_LENGTH] = {0,};
     stw_tmr_Node_t *tmrNode = NULL;
-    
-    if(!timer_name) 
+
+    if(!timer_name)
         return FALSE;
 
     if(strlen(timer_name) > STW_NAME_LENGTH -1)
         return FALSE;
 
     /* MUTEX */
-    tmr_lock_mutex();         
+    tmr_lock_mutex();
     if(tmr_find_tmrNode(timer_name, &tmrNode) == FALSE){
         /* MUTEX */
-        tmr_unlock_mutex();        
+        tmr_unlock_mutex();
         return FALSE;
     }
 
@@ -362,9 +359,9 @@ bool_t tmr_delete_timerNode(const char *timer_name){
         return FALSE;
     }
 
-    memset(tmrNode,0,sizeof(stw_tmr_Node_t));    
+    memset(tmrNode,0,sizeof(stw_tmr_Node_t));
     /* MUTEX */
-    tmr_unlock_mutex();    
+    tmr_unlock_mutex();
 
     return TRUE;
 }
@@ -377,7 +374,7 @@ bool_t tmr_delete_timerNode(const char *timer_name){
  *     show the specific timer node in the time list.
  *
  *  Parameters:
- *     *timer_name      pointer to the name of specific timer 
+ *     *timer_name      pointer to the name of specific timer
  *
  *  Returns:
  *    TRUE
@@ -386,18 +383,18 @@ bool_t tmr_delete_timerNode(const char *timer_name){
 bool_t tmr_show_timerNode(const char *timer_name){
     //char timer_name[STW_NAME_LENGTH] = {0,};
     stw_tmr_Node_t *tmrNode = NULL;
-    
-    if(!timer_name) 
+
+    if(!timer_name)
         return FALSE;
 
     if(strlen(timer_name) > STW_NAME_LENGTH -1)
         return FALSE;
 
     /* MUTEX */
-    tmr_lock_mutex();         
+    tmr_lock_mutex();
     if(tmr_find_tmrNode(timer_name, &tmrNode) == FALSE){
         /* MUTEX */
-        tmr_unlock_mutex();        
+        tmr_unlock_mutex();
         return FALSE;
     }
 
@@ -413,22 +410,22 @@ bool_t tmr_show_timerNode(const char *timer_name){
         tmr_unlock_mutex();
         return TRUE;
     }
-   
+
     printf("       timer_name=%s\n", tmrNode->timer_name);
-   
+
     if(tmrNode->tid){
         //fwk_showTask(tmrNode->tid);
     }
 
     if(tmrNode->parm)
         printf("       parm=%d\n", 1);
-    
+
     printf("    tmr rotation_count=%u\n", tmrNode->tmr.rotation_count);
     printf("    tmr delay=%u\n", tmrNode->tmr.delay);
-    printf("    tmr periodic_delay=%u\n", tmrNode->tmr.periodic_delay);  
-    
+    printf("    tmr periodic_delay=%u\n", tmrNode->tmr.periodic_delay);
+
     /* MUTEX */
-    tmr_unlock_mutex();    
+    tmr_unlock_mutex();
 
     return TRUE;
 }
@@ -441,7 +438,7 @@ bool_t tmr_show_timerNode(const char *timer_name){
  *     Start the specific timer node in the time list.
  *
  *  Parameters:
- *     *timer_name      pointer to the name of specific timer 
+ *     *timer_name      pointer to the name of specific timer
  *
  *  Returns:
  *    TRUE
@@ -453,17 +450,17 @@ bool_t tmr_start_timer(const char *timer_name){
     printf("%s timer=%s \n",
            __func__,
            timer_name);
-    if(!timer_name) 
+    if(!timer_name)
         return FALSE;
 
     if(strlen(timer_name) > STW_NAME_LENGTH -1)
         return FALSE;
 
     /* MUTEX */
-    tmr_lock_mutex();         
+    tmr_lock_mutex();
     if(tmr_find_tmrNode(timer_name, &tmrNode) == FALSE){
         /* MUTEX */
-        tmr_unlock_mutex();        
+        tmr_unlock_mutex();
         return FALSE;
     }
 
@@ -473,8 +470,8 @@ bool_t tmr_start_timer(const char *timer_name){
         return FALSE;
     }
 
-    stw_timer_prepare(&(tmrNode->tmr));    
-    if(stw_timer_start(stw_sys_handle, 
+    stw_timer_prepare(&(tmrNode->tmr));
+    if(stw_timer_start(stw_sys_handle,
                              &(tmrNode->tmr),
                              tmrNode->tmr.delay,
                              tmrNode->tmr.periodic_delay,
@@ -486,7 +483,7 @@ bool_t tmr_start_timer(const char *timer_name){
         return FALSE;
     }
     /* MUTEX */
-    tmr_unlock_mutex();      
+    tmr_unlock_mutex();
     return TRUE;
 }
 
@@ -498,7 +495,7 @@ bool_t tmr_start_timer(const char *timer_name){
  *     Start the specific timer node in the time list.
  *
  *  Parameters:
- *     *timer_name      pointer to the name of specific timer 
+ *     *timer_name      pointer to the name of specific timer
  *
  *  Returns:
  *    TRUE
@@ -506,18 +503,18 @@ bool_t tmr_start_timer(const char *timer_name){
  */
 bool_t tmr_stop_timer(const char *timer_name){
     stw_tmr_Node_t *tmrNode = NULL;
-    
-    if(!timer_name) 
+
+    if(!timer_name)
         return FALSE;
 
     if(strlen(timer_name) > STW_NAME_LENGTH -1)
         return FALSE;
 
     /* MUTEX */
-    tmr_lock_mutex();         
+    tmr_lock_mutex();
     if(tmr_find_tmrNode(timer_name, &tmrNode) == FALSE){
         /* MUTEX */
-        tmr_unlock_mutex();        
+        tmr_unlock_mutex();
         return FALSE;
     }
 
@@ -526,21 +523,21 @@ bool_t tmr_stop_timer(const char *timer_name){
         tmr_unlock_mutex();
         return FALSE;
     }
- 
+
     if(stw_timer_stop(stw_sys_handle, &tmrNode->tmr) != RC_STW_OK){
         /* MUTEX */
         tmr_unlock_mutex();
         return FALSE;
     }
     /* MUTEX */
-    tmr_unlock_mutex();      
+    tmr_unlock_mutex();
     return TRUE;
 }
 
-/* 
+/*
  * This function is envoked as result of the sigalrm
  * to drive the timer wheel.
- */    
+ */
 static void timer_handler (__attribute__((unused)) int signum)
 {
     stw_timer_tick(stw_sys_handle);
@@ -554,7 +551,7 @@ static void timer_handler (__attribute__((unused)) int signum)
  *     Start the specific timer node in the time list.
  *
  *  Parameters:
- *     *timer_name      pointer to the name of specific timer 
+ *     *timer_name      pointer to the name of specific timer
  *
  *  Returns:
  *    TRUE
@@ -562,42 +559,42 @@ static void timer_handler (__attribute__((unused)) int signum)
  */
 void * tmr_main_task(__attribute__((unused)) void * ptr){
     printf("tmr_main_task!!!\n\n");
-#ifndef NANO_SLEEP_TIMER    
+#ifndef NANO_SLEEP_TIMER
     /*
-       * interval timer variables 
-       */ 
+       * interval timer variables
+       */
     struct sigaction sa;
     struct itimerval timer;
     uint32_t microseconds;
-    
-    /* 
-     * Install the interval timer_handler as the signal handler 
-     * for SIGALRM. 
+
+    /*
+     * Install the interval timer_handler as the signal handler
+     * for SIGALRM.
      */
     memset (&sa, 0, sizeof (sa));
     sa.sa_handler = &timer_handler;
     sigaction (SIGALRM, &sa, NULL);
 
-    /* 
-     * Configure the initial delay for 500 msec 
+    /*
+     * Configure the initial delay for 500 msec
      * and then every 100 msec after
      */
-    microseconds = (STW_RESOLUTION * 1000); 
+    microseconds = (STW_RESOLUTION * 1000);
     timer.it_value.tv_sec = 0;
     timer.it_value.tv_usec = microseconds;
     timer.it_interval.tv_sec = 0;
     timer.it_interval.tv_usec = microseconds;
 
-    /* 
-     * Now start the interval timer. 
+    /*
+     * Now start the interval timer.
      */
     setitimer (ITIMER_REAL, &timer, NULL);
 
     //timer main loop
     while (1) {
-        /*keep in loop! do nothing*/       
-    }    
-    
+        pause(); /*keep in loop! do nothing*/
+    }
+
 #else // for nano sleep timer
     uint32_t               u4TickInterval;
     uint32_t               u4Ticks;
@@ -607,7 +604,7 @@ void * tmr_main_task(__attribute__((unused)) void * ptr){
 
     struct timespec     req;
     struct tms          st_tms, en_tms;
-    //timer_t             st_tms, en_tms;    
+    //timer_t             st_tms, en_tms;
     clock_t             st_time, en_time;
 
     /* the interval between 2 ticks in micro-seconds */
@@ -617,8 +614,8 @@ void * tmr_main_task(__attribute__((unused)) void * ptr){
     u4TickInterval = 1000000 / (gu4Stups);
 
     req.tv_sec = u4TickInterval / 1000000;
-    req.tv_nsec = (u4TickInterval % 1000000) * 1000;   
-    
+    req.tv_nsec = (u4TickInterval % 1000000) * 1000;
+
     for (;;)
     {
         st_time = times (&st_tms);
@@ -633,7 +630,7 @@ void * tmr_main_task(__attribute__((unused)) void * ptr){
         else
         {
             /* Modified for getting correct conversion to 100 ticks */
-            u4Ticksx10 = (((en_time - st_time) * gu4Stups * 10)/ sysconf (_SC_CLK_TCK)); 
+            u4Ticksx10 = (((en_time - st_time) * gu4Stups * 10)/ sysconf (_SC_CLK_TCK));
             u4Ticks = u4Ticksx10 / 10;
             u4TicksRem +=  u4Ticksx10 % 10;
             if((u4TicksRem / 10) >= 1)
@@ -642,7 +639,7 @@ void * tmr_main_task(__attribute__((unused)) void * ptr){
                 u4TicksRem -= 10;
             }
         }
-        
+
         while (u4Ticks != 0)
         {
             timer_handler(0);
@@ -650,7 +647,7 @@ void * tmr_main_task(__attribute__((unused)) void * ptr){
 
         }
     }
-#endif        
+#endif
 
     return NULL;
 }
