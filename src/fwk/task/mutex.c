@@ -107,8 +107,8 @@ int fwk_createMutex(fwk_mutexAttr_t* pMAttr, void** pMid)
 	if (!pMAttr) {
 		sprintf(fma.name, "Mutex%i", mcbIdx);
 		fma.pshared = PTHREAD_PROCESS_PRIVATE;
-		fma.type = PTHREAD_MUTEX_RECURSIVE_NP;//Update from PTHREAD_MUTEX_DEFAULT; to adapt the timer mutex
-		fma.protocol = PTHREAD_PRIO_PROTECT; //prevent priority invert
+		fma.type = PTHREAD_MUTEX_DEFAULT;
+		fma.protocol = PTHREAD_PRIO_NONE; //prevent priority invert: PROTECT
 		fma.prioceiling = fwk_getDefaultMutexPrioCeiling();
 		fma.robust = PTHREAD_MUTEX_STALLED;
 		fma.robust_np = PTHREAD_MUTEX_STALLED_NP;
