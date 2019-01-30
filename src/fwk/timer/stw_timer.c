@@ -84,9 +84,6 @@ void stw_init_mutex(void)
     pthread_mutexattr_t mutex_attr;
 
     pthread_mutexattr_init(&mutex_attr);
-    //PTHREAD_MUTEX_RECURSIVE_NP ----PTHREAD_PROCESS_PRIVATE
-    pthread_mutexattr_settype((pthread_mutexattr_t *)(&mutex_attr),
-                              (int)PTHREAD_MUTEX_RECURSIVE_NP);
     error = pthread_mutex_init(&tick_mutex,&mutex_attr);
     if (error) printf("stw_init_mutex ERROR\n");
     pthread_mutexattr_destroy(&mutex_attr);
