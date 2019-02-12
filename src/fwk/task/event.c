@@ -90,10 +90,10 @@ int fwk_task_clearEventQueue(fwk_taskID_t tid)
 	return rc;
 }
 #if 0
-#define FWK_EVENT_NAME_MAX_LEN 12
+#define FWK_EVENT_NAME_MAX_LEN 32
 typedef struct {
 	char name[FWK_EVENT_NAME_MAX_LEN];
-	uint8_t depth; /* max message number */
+	uint16_t depth; /* max message number */
 	uint16_t size; /* each message length */
 }fwk_eventAttr_t;
 #endif
@@ -107,7 +107,7 @@ typedef struct {
 static fwk_eventList_t gFwkEventList[FWK_EVENT_MAX_LIMIT];
 static int gCurEventCount = 0;
 
-int fwk_createEvent(uint16_t msgLen, uint8_t msgDepth, void** eid, const char* name)
+int fwk_createEvent(uint16_t msgLen, uint16_t msgDepth, void** eid, const char* name)
 {
 	int i, rc = 0;
 	fwk_eventList_t* pEid = NULL;
@@ -125,7 +125,8 @@ int fwk_createEvent(uint16_t msgLen, uint8_t msgDepth, void** eid, const char* n
 	CHECK(rc);
 
 	fwk_queueAttr_t qAttr;
-	strcpy(qAttr.name, name);
+	//strcpy(qAttr.name, name);
+	strncpy(qAttr.name, name, FWK_QUEUE_NAME_MAX_LEN);
 	qAttr.depth = msgDepth;
 	qAttr.size = msgLen;
 	qAttr.maxBufSize = 0;
@@ -148,6 +149,13 @@ int fwk_sendEvent(void* eid, const void * data, uint16_t datalen, int timeout)
 	ck = fwk_msgQSend(pEid->qid, data, datalen, NULL, 0, 0);
 	//ck = fwk_sendToQueue(pEid->qid, data, datalen, timeout);
 	CHECK(ck);
+#ifdef DEBUG
+	if (ck) {
+		fwk_showEvent(pEid);
+		fwk_showTask(fwk_myTaskId());
+		printf("\n");
+	}
+#endif
 	if (!ck) { //Notify condition id
 		rc = fwk_wakeupCond(pEid->cid);
 		CHECK(rc);
@@ -234,4 +242,3 @@ void fwk_showEvent(void* eid)
 		}
 	}
 }
-

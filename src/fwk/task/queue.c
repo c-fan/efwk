@@ -113,11 +113,11 @@ int fwk_createQueue(fwk_queueAttr_t* pQAttr, void* mid, fwk_queueID_t* qid)
 	return rc;
 }
 
-int fwk_createFixsizeQueue(fwk_queueID_t * qID, char * name, uint8_t depth, uint16_t size)
+int fwk_createFixsizeQueue(fwk_queueID_t * qID, char * name, uint16_t depth, uint16_t size)
 {
 	fwk_queueAttr_t attr = {{0}, depth, size, 0};
-	//if (name) strncmp(attr.name, name, FWK_QUEUE_NAME_MAX_LEN);
-	if (name) sprintf(attr.name, "%s", name);
+	if (name) strncpy(attr.name, name, FWK_QUEUE_NAME_MAX_LEN);
+	//if (name) sprintf(attr.name, "%s", name);
 	int rc = fwk_createQueue(&attr, NULL, qID);
 	return rc;
 }
@@ -125,9 +125,8 @@ int fwk_createFixsizeQueue(fwk_queueID_t * qID, char * name, uint8_t depth, uint
 int fwk_createVarSizeQueue(fwk_queueID_t * qID, char * name, uint16_t maxBufSize)
 {
 	fwk_queueAttr_t attr = {{0}, 0, 0, maxBufSize};
-	//if (name) strncmp(attr.name, name, FWK_QUEUE_NAME_MAX_LEN);
-	//if (name) strcmp(attr.name, name); //statement with no effect [-Wunused-value]
-	if (name) sprintf(attr.name, "%s", name);
+	if (name) strncpy(attr.name, name, FWK_QUEUE_NAME_MAX_LEN);
+	//if (name) sprintf(attr.name, "%s", name);
 	int rc = fwk_createQueue(&attr, NULL, qID);
 	return rc;
 }
@@ -420,4 +419,3 @@ uint16_t fwk_getMsgSize(fwk_queueID_t qID)
 	fwk_queueList_t* pQid = (fwk_queueList_t*)qID;
 	return pQid ? pQid->attr.size : 0;
 }
-

@@ -148,7 +148,7 @@ int fwk_createTask(fwk_taskAttr_t* pAttr, fwk_taskID_t* pTid)
 	}
 	pTcb->attr.func = pAttr->func;
 	pTcb->attr.args = pAttr->args;
-	pTcb->attr.policy = pAttr->policy;
+	pTcb->attr.policy = pAttr->policy; //SCHED_FIFO and SCHED_RR only for root
 	pTcb->attr.priority = pAttr->priority;
 	fwk_memmgmt_cpy(&pTcb->attr.resource, &pAttr->resource, sizeof(pAttr->resource));
 	if (pTcb->attr.resource.stackSize < PTHREAD_STACK_MIN) { //ARM64=131072, ARM32=16384
@@ -435,4 +435,3 @@ void fwk_showTask(fwk_taskID_t tid)
 		}
 	}
 }
-
