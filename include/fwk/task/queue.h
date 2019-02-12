@@ -39,13 +39,13 @@ extern "C"
 #define FWK_QUEUE_MSG_DEF_LEN 128
 
 /* queue name maximum size */
-#define FWK_QUEUE_NAME_MAX_LEN 12
+#define FWK_QUEUE_NAME_MAX_LEN 32
 
 typedef void* fwk_queueID_t;
 
 typedef struct {
 	char name[FWK_QUEUE_NAME_MAX_LEN];
-	uint8_t depth; /* max message number */
+	uint16_t depth; /* max message number */
 	uint16_t size; /* each message length */
 	uint32_t maxBufSize; /* total messasge buffer size */
 }fwk_queueAttr_t;
@@ -69,7 +69,7 @@ int fwk_msgQRecv(fwk_queueID_t qID, void * buffer, uint16_t bufsize, int timeout
  * 		FWK_TASK_QUEUE_E_INTERNAL
  */
 extern int fwk_createFixsizeQueue(fwk_queueID_t * qID, char * name,
-		uint8_t depth, uint16_t size);
+		uint16_t depth, uint16_t size);
 
 /*
  * Create queue for variable sized data.

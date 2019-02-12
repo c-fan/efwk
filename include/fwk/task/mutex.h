@@ -27,7 +27,7 @@ int fwk_msDeltaRemain(int timeout, clockid_t clk_id, struct timespec* baseTs);
 typedef struct {
 	char name[FWK_MUTEX_NAME_LEN];
 	int pshared; //PTHREAD_PROCESS_PRIVATE(0) | PTHREAD_PROCESS_SHARED(1)
-	int type; //PTHREAD_MUTEX_DEFAULT(0) | PTHREAD_MUTEX_NORMAL(0) | PTHREAD_MUTEX_ERRORCHECK(1) | PTHREAD_MUTEX_RECURSIVE(2)
+	int type; //PTHREAD_MUTEX_DEFAULT(0) | PTHREAD_MUTEX_NORMAL(0) | PTHREAD_MUTEX_ERRORCHECK(1) | PTHREAD_MUTEX_RECURSIVE(2) | PTHREAD_MUTEX_ERRORCHECK_NP
 	int protocol; //PTHREAD_PRIO_NONE(0) | PTHREAD_PRIO_INHERIT(1) | PTHREAD_PRIO_PROTECT(2)
 	int prioceiling; //priority ceiling, in case of protocol inherit or protect
 	int robust; //PTHREAD_MUTEX_STALLED(0) | PTHREAD_MUTEX_ROBUST(1)
@@ -95,7 +95,7 @@ int fwk_getCondClock(void* cid);
 void* fwk_condID(char* name);
 void fwk_showCond(void* cid);
 
-#define FWK_SEMA4_NAME_LEN 8
+#define FWK_SEMA4_NAME_LEN 16
 typedef struct {
 	char name[FWK_SEMA4_NAME_LEN];
 	int pshared; //negative - processes; zero - thread internal, default; positive - threads
@@ -123,4 +123,3 @@ void fwk_showSemaphore(void* sid);
 #endif
 
 #endif
-

@@ -43,7 +43,7 @@ typedef void* fwk_taskID_t;
 /* task handler function prototype */
 typedef void *(*fwk_taskFunc_proto_t)(void *);
 /* task name maximum size */
-#define FWK_TASK_NAME_MAX_LEN 8
+#define FWK_TASK_NAME_MAX_LEN 16
 
 /*
  * Task resource reservation
@@ -56,7 +56,7 @@ typedef struct
 	fwk_addr_t memPoolSize;
 	/* default event queue */
 	uint16_t queueSize; /* max size for each event in the queue */
-	uint8_t queueDepth; /* max number of events */
+	uint16_t queueDepth; /* max number of events */
 } fwk_taskRes_t;
 
 typedef struct {
