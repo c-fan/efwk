@@ -340,7 +340,9 @@ void* initMutex(__attribute__((unused)) void* args)
 void* initSema(__attribute__((unused)) void* args)
 {
   int rc = 0;
-  rc = fwk_createSemaphore(NULL, &gSid);
+  fwk_sema4Attr_t sema4Attr = {"procSema4", -1, 0};
+  rc = fwk_createSemaphore(&sema4Attr, &gSid);
+  //rc = fwk_createSemaphore(NULL, &gSid);
   if (rc) {
   	printf("create semaphore failed: rc %i, errno %i\n", rc, errno);
   }
@@ -349,7 +351,7 @@ void* initSema(__attribute__((unused)) void* args)
 
 void* initQueue(__attribute__((unused)) void* args)
 {
-  uint8_t depth = 8;
+  uint16_t depth = FWK_QUEUE_MSG_DEF_NUM * 100;
   uint16_t size = FWK_QUEUE_MSG_DEF_LEN;
   static int rc = 0;
   rc = fwk_createFixsizeQueue(&gQid, NULL, depth, size);
@@ -436,6 +438,13 @@ void b_timer (__attribute__((unused)) stw_tmr_t *tmr, void *parm)
     printf("TimerB cb: %s timer b count=%i\n", __func__, ++*(int*)parm);
 }
 
+void c_timer (__attribute__((unused)) stw_tmr_t *tmr, void *parm)
+{
+    printf("TimerC cb: %s timer b count=%i\n", __func__, ++*(int*)parm);
+    int rc = tmr_delete_timerNode("TimerC");
+    printf("%s delete tmr %i\n", __func__, rc);
+}
+
 void* timerClient(__attribute__((unused)) void* args)
 {
   int buf[FWK_QUEUE_MSG_DEF_LEN];
@@ -471,9 +480,11 @@ int initTimerDemo(void)
   delay = 100 * SYS_TIME_TICKS_IN_A_SEC;// 1 times in 1 second
   periodic_delay = 100 * SYS_TIME_TICKS_IN_A_SEC; // 1 times in 1 second 
   rc = tmr_add_timerNode("TimerB",delay,periodic_delay, tid, b_timer, &gTimeBTick);
+  rc = tmr_add_timerNode("TimerC",delay,periodic_delay, NULL, c_timer, &gTimeBTick);
 
-  rc = tmr_start_timer("TimerA");
-  rc = tmr_start_timer("TimerB");
+  //rc = tmr_start_timer("TimerA");
+  //rc = tmr_start_timer("TimerB");
+  rc = tmr_start_timer("TimerC");
   return rc;
 }
 
