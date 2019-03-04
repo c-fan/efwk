@@ -88,7 +88,7 @@ typedef struct stw_links_t_ {
  * and keep stats to help understand performance
  */
 #define STW_NAME_LENGTH   ( 32 )
-#define STW_MAX_TIMER_NUM (50)
+#define STW_MAX_TIMER_NUM (300)
 
 typedef struct {
     char  wheel_name[ STW_NAME_LENGTH ];
@@ -241,4 +241,3 @@ stw_timer_create(uint32_t   wheel_size,
 #endif /* __cplusplus */
 
 #endif /* __STW_TIMER_H__ */
-
