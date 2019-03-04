@@ -550,21 +550,16 @@ stw_timer_tick (stw_t *stw)
              * Invoke the user expiration handler to do the actual work.
              */
             //first threadInfo if it is not null, otherwise handle func_ptr
-            if (tmr->tid && tmr->parm) {
 #if 0
-                    Message *message = (Message *)(tmr->parm);
-                    uint32_t type = message->type;
-                    uint32_t length = message->length;
-                    void *body = message->body;
-                    send_message(tmr->tid, type, length, body);
-#else
+            if (tmr->tid && tmr->parm) {
                     //fwk_task_sendEvent(tmr->tid, 1, tmr->parm, 8, FOREVER);
                     int rc = fwk_task_sendEvent(tmr->tid, *(int*)(tmr->parm), "Time", 8, FOREVER);
                     if (rc) {
                         printf("Error: %s %i, rc %i\n", __func__, __LINE__, rc);
                     }
+            } else 
 #endif
-            } else if (tmr->func_ptr) {
+            if (tmr->func_ptr) {
                 user_call_back = tmr->func_ptr;
                 (*user_call_back)(tmr, tmr->parm);
             }
