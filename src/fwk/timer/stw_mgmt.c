@@ -447,9 +447,11 @@ bool_t tmr_show_timerNode(const char *timer_name){
 bool_t tmr_start_timer(const char *timer_name){
     stw_tmr_Node_t *tmrNode = NULL;
 
+    /*
     printf("%s timer=%s \n",
            __func__,
            timer_name);
+    */
     if(!timer_name)
         return FALSE;
 

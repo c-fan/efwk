@@ -112,10 +112,10 @@ void stw_destroy_mutex(void)
 
 /*
  * Name
- *     tmr_enqueue
+ *     tmr_enqueue_unlocked
  *
  *  Description:
- *     Enqueues the timer to the proper spoke per delay.
+ *     Enqueues the timer to the proper spoke per delay. The unlocked version
  *
  *  Parameters:
  *     *stw             pointer to the timer wheel that the timer
@@ -130,17 +130,12 @@ void stw_destroy_mutex(void)
  *
  */
 static void
-tmr_enqueue (stw_t *stw, stw_tmr_t *tmr, uint32_t delay)
+tmr_enqueue_unlocked (stw_t *stw, stw_tmr_t *tmr, uint32_t delay)
 {
     stw_links_t  *prev, *spoke;
     uint32_t cursor;
     uint32_t ticks;
     uint32_t td;
-
-    /*
-     * BEGIN CRITICAL REGION
-     */
-    LOCK_INTERRUPTS();
 
     if (delay < stw->granularity) {
         /*
@@ -185,12 +180,40 @@ tmr_enqueue (stw_t *stw, stw_tmr_t *tmr, uint32_t delay)
     prev->stw_next   = (stw_links_t *)tmr;
     spoke->stw_prev = (stw_links_t *)tmr;
 
+    return;
+}
+
+/*
+ * Name
+ *     tmr_enqueue
+ *
+ *  Description:
+ *     Enqueues the timer to the proper spoke per delay. The locked version
+ *
+ *  Parameters:
+ *     *stw             pointer to the timer wheel that the timer
+ *                      will run on
+ *
+ *     *tmr             pointer to the timer element
+ *
+ *     delay            delay in milliseconds
+ *
+ *  Returns:
+ *     Nothing
+ *
+ */
+static void
+tmr_enqueue (stw_t *stw, stw_tmr_t *tmr, uint32_t delay)
+{
+    /*
+     * BEGIN CRITICAL REGION
+     */
+    LOCK_INTERRUPTS();
+    tmr_enqueue_unlocked(stw, tmr, delay);
     UNLOCK_INTERRUPTS();
     /*
      * END CRITICAL REGION
      */
-
-    return;
 }
 
 /*
@@ -513,6 +536,14 @@ stw_timer_tick (stw_t *stw)
     spoke = &stw->spokes[stw->spoke_index];
     tmr = (stw_tmr_t *)spoke->stw_next;
 
+    /*
+    ** The entire iteration of the spoke must be considered as critical region 
+    ** therefore be protected by mutex, in case timer being inserted to or
+    ** removed from spoke/queue when starting/stopping timer.
+    ** BEGIN CRITICAL REGION
+     */
+    LOCK_INTERRUPTS();
+    
     while( (stw_links_t *)tmr != spoke) {
 
         next = (stw_links_t *)tmr->links.stw_next;
@@ -526,11 +557,6 @@ stw_timer_tick (stw_t *stw)
             tmr->rotation_count--;
         } else {
 
-            /*
-            ** BEGIN CRITICAL REGION
-             */
-            LOCK_INTERRUPTS();
-
             prev->stw_next = next;
             next->stw_prev = prev;
 
@@ -540,11 +566,6 @@ stw_timer_tick (stw_t *stw)
             /* book keeping */
             stw->timer_active--;
             stw->timer_expired++;
-
-            UNLOCK_INTERRUPTS();
-            /*
-            ** END CRITICAL REGION
-             */
 
             /*
              * Invoke the user expiration handler to do the actual work.
@@ -568,13 +589,20 @@ stw_timer_tick (stw_t *stw)
              * automatically restart the timer if periodic_delay > 0
              */
             if (tmr->periodic_delay > 0) {
-                 tmr_enqueue(stw, tmr, tmr->periodic_delay);
-                 stw->timer_active++;
+                /* changed to unlocked version to avoid double lock */
+                tmr_enqueue_unlocked(stw, tmr, tmr->periodic_delay);
+                stw->timer_active++;
             }
         }
 
         tmr = (stw_tmr_t *)next;
     }
+
+    UNLOCK_INTERRUPTS();
+    /*
+    ** END CRITICAL REGION
+     */
+    
     return;
 }
 

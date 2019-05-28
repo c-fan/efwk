@@ -35,9 +35,10 @@ CFLAGS += -g -O0 -Wall $(EXTRA_WARNINGS) -MMD -MP -D_GNU_SOURCE $(INCLUDE)
 CFLAGS += -fasynchronous-unwind-tables
 LDFLAGS = -L$(LibDir) -lefwks -lpthread -lcrypt
 
-UtSrc:=ut/efwk-demo.c
-UtObj = $(StaticObjDir)/$(UtSrc:%.c=%.o)
-DemoExe = $(BinDir)/efwk-demo
+_UtSrcs:=efwk-demo.c stw_timer_race_condtion.c
+UtSrcs:=$(_UtSrcs:%=ut/%)
+UtObj:=$(StaticObjDir)/$(UtSrcs:%.c=%.o)
+DemoExes:=$(_UtSrcs:%.c=$(BinDir)/%)
 
 reverse = $(if $(wordlist 2,2,$(1)),$(call reverse,$(wordlist 2,$(words $(1)),$(1))) $(firstword $(1)),$(1))
 
@@ -50,7 +51,7 @@ dll: $(DynamicLib)
 
 stlib: $(StaticLib)
 
-demoexe: $(DemoExe)
+demoexe: $(DemoExes)
 
 create_static_obj_dir:
 	@mkdir -p $(StaticObjDir)
@@ -64,12 +65,12 @@ create_lib_dir:
 create_bin_dir:
 	@mkdir -p $(BinDir)
 
-$(DemoExe): $(StaticLib) $(UtObj) | create_bin_dir
-	$(CC) $(CFLAGS) -o $(DemoExe) $(UtObj) $(LDFLAGS)
-	#$(STRIP) $(DemoExe)
+$(BinDir)/%: $(StaticObjDir)/ut/%.o $(StaticLib) | create_bin_dir
+	$(CC) $(CFLAGS) -o $@ $< $(LDFLAGS)
+	$(STRIP) -g $@
 
 clean:
-	$(RM) $(StaticObjs) $(SharedObjs) $(StaticObjs:%.o=%.d) $(SharedObjs:%.o=%.d) $(StaticLib) $(DynamicLib) $(UtObj) $(UtObj:%.o=%.d) $(DemoExe)
+	$(RM) $(StaticObjs) $(SharedObjs) $(StaticObjs:%.o=%.d) $(SharedObjs:%.o=%.d) $(StaticLib) $(DynamicLib) $(UtObj) $(UtObj:%.o=%.d) $(DemoExes)
 	-@rmdir $(StaticObjDir)/ut
 	-@rmdir $(call reverse,$(filter-out src,$(AllDirs:src/%=$(StaticObjDir)/%)))
 	-@rmdir $(call reverse,$(filter-out src,$(AllDirs:src/%=$(SharedObjDir)/%)))
@@ -102,6 +103,6 @@ endef
 
 $(foreach src,$(Sources),$(eval $(call COMPILE_SOURCE,$(subst src,$(StaticObjDir),$(src:%.c=%.o)),$(src))))
 $(foreach src,$(Sources),$(eval $(call COMPILE_SOURCE,$(subst src,$(SharedObjDir),$(src:%.c=%.o)),$(src))))
-$(foreach src,$(UtSrc),$(eval $(call COMPILE_SOURCE,$(subst ut,$(StaticObjDir)/ut,$(src:%.c=%.o)),$(src))))
+$(foreach src,$(UtSrcs),$(eval $(call COMPILE_SOURCE,$(subst ut,$(StaticObjDir)/ut,$(src:%.c=%.o)),$(src))))
 
 sinclude $(Deps)
