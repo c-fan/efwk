@@ -472,6 +472,16 @@ bool_t tmr_start_timer(const char *timer_name){
         return FALSE;
     }
 
+    // Added on behalf of weipengc on 2020-02-03
+    //if timer has been running, it need to be stop first , then start
+    if(stw_timer_running(&tmrNode->tmr) == TRUE){
+        if(stw_timer_stop(stw_sys_handle, &tmrNode->tmr) != RC_STW_OK){
+            /* MUTEX */
+            tmr_unlock_mutex();
+            return FALSE;
+        }
+    }
+
     stw_timer_prepare(&(tmrNode->tmr));
     if(stw_timer_start(stw_sys_handle,
                              &(tmrNode->tmr),
